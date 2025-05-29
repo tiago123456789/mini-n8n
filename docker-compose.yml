@@ -4,8 +4,6 @@ services:
 
   code-executor:
     build: ./code-executor
-    ports:
-      - "3005:3005"
     networks:
       - poc-mini-n8n
 
