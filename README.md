@@ -2,6 +2,8 @@
 
 The project is a mini version of n8n.
 
+Link to video show a little bit about the project: https://www.youtube.com/watch?v=eiW2SZ2YSuc
+
 ### Node types
 
 - Webhook(WebhookNode)
@@ -37,4 +39,6 @@ The project is a mini version of n8n.
 - Access directory **frontend**
 - Execute command **pnpm install**
 - Execute command **pnpm run dev**
+
+
 
