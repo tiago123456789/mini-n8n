@@ -1,0 +1,10 @@
+[pr_reviewer]
+extra_instructions="""\
+- Force replace var to let
+- Use import over required to call third library
+- Controller file needs to implement method handle such as: handle(req, res, next) {} and need to export the controller. For example: export { NameControllerHere }
+- Service file needs to implement method named execute such as: execute(params) {} and need to export the service. For example: export { NameServiceHere }
+- All new service file needs to have a tests file using the same, but the extension is .spec.js. For example: HiService.js needs to have a test 
+file named HiService.spec.js
+...
+"""
