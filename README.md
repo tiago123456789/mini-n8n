@@ -14,8 +14,8 @@ Link to video show a little bit about the project: https://www.youtube.com/watch
 ## Stack
 
 ### Backend
-- NodeJs
-- Express
+- Node.js
+- Express.js
 - Mongodb
 - Docker
 - Docker Compose
@@ -28,7 +28,6 @@ Link to video show a little bit about the project: https://www.youtube.com/watch
 ### Frontend
 - NextJs
 - TypeScript
-
 
 ## How to run
 
