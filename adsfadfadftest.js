@@ -5,3 +5,4 @@ console.log(a + b)
 
 console.log(list.length)
 
+function hi() { console.log('Hi') }
