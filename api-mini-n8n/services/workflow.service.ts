@@ -1,3 +1,4 @@
+import { BusinessException } from "../exception/business.exception";
 import { NotFoundException } from "../exception/not-found.exception";
 import WorkflowExecutionModel from "../models/workflow-execution.model";
 import CustomNodeRepository from "../repositories/custom-node.repository";
@@ -194,6 +195,98 @@ class WorkflowService {
         });
 
         return result;
+    }
+
+    async create(data: {
+        name: string;
+        nodes: Array<any>;
+        originalWorkflow: {
+            nodes: Array<any>;
+            edges: Array<any>;
+        };
+        sensitiveData: Array<{ key: string, value: string }>;
+        webhookId: string;
+    }) {
+        const name = data.name;
+        const workflowByName = await this.workflowRepository.findByName(name);
+        if (workflowByName) {
+            throw new BusinessException("Workflow already exists");
+        }
+
+        let sensitiveData: Array<{ key: string, value: string }> = data.sensitiveData;
+        let sensitiveObject: { [key: string]: any } = {};
+        if (sensitiveData && sensitiveData.length > 0) {
+            sensitiveData.forEach((item) => {
+                sensitiveObject[item.key] = this.encrypter.encrypt(item.value);
+            })
+        } else {
+            sensitiveObject = {};
+        }
+
+        const firstNode = data.nodes[0];
+        if (firstNode.type === "webhook") {
+            data.webhookId = randomUUID();
+        }
+
+        const result = await this.workflowRepository.insertOne({
+            name: data.name,
+            data: {
+                ...data,
+                sensitiveData: sensitiveObject,
+            },
+            webhookId: data.webhookId,
+            created_at: new Date(),
+            updated_at: new Date(),
+        });
+
+        return result;
+    }
+
+    async update(data: {
+        id: string;
+        name: string;
+        nodes: Array<any>;
+        originalWorkflow: {
+            nodes: Array<any>;
+            edges: Array<any>;
+        };
+        sensitiveData: Array<{ key: string, value: string }>;
+        webhookId: string;
+    }) {
+        const result = await this.workflowRepository.findById(data.id);
+        if (!result) {
+            throw new NotFoundException("Workflow not found");
+        }
+
+        let sensitiveData: Array<{ key: string, value: string }> = data.sensitiveData;
+        let sensitiveObject: { [key: string]: any } = {};
+        if (sensitiveData && sensitiveData.length > 0) {
+            sensitiveData.forEach((item) => {
+                if (!item.value.startsWith(PREFIX_IDENTIFY_ENCRYPTED_KEY)) {
+                    sensitiveObject[item.key] = this.encrypter.encrypt(item.value);
+                }
+            })
+        } 
+
+        const sensitiveDataFromWorkflow: { [key: string]: any } = result.sensitiveData || {};
+        sensitiveObject = {
+            ...sensitiveObject,
+            ...sensitiveDataFromWorkflow,
+        }
+
+        await this.workflowRepository.updateOne(data.id, {
+            name: data.name,
+            data: {
+                ...data,
+                sensitiveData: sensitiveObject,
+            },
+            webhookId: data.webhookId,
+            created_at: new Date(),
+            updated_at: new Date(),
+        });
+
+        return result;
+
     }
 }
 

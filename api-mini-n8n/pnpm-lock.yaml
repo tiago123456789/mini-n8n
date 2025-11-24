@@ -42,8 +42,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2(ws@8.18.3)(zod@3.25.76)
       parallel-http-request-node-mini-n8n:
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -2330,8 +2330,8 @@ packages:
     resolution: {integrity: sha512-o46P8Z9DK0blcmY7F95SnsBWZ6bow3HAcLKXlgIc/SZE8og21qrxL14nAi6Wy8E0Iw06wA0yS5icSayXw8BU8A==}
     engines: {node: '>=0.10.0'}
 
-  parallel-http-request-node-mini-n8n@1.0.0:
-    resolution: {integrity: sha512-cz0SXwaQDEm07wnI7wNAHaOZTA4eH48CM71V1xRgNEkFulyHQjPdvzO2No4kQHKykSE2tUOV6KZhADTkZ59o+w==}
+  parallel-http-request-node-mini-n8n@1.0.1:
+    resolution: {integrity: sha512-uohZb7UAqF1F9bnbw7+uOL/x6Kq93owjH3Dxp1F7ipDM9W00FeDxIovN/vb/OKFHLMnw/iq9TEo+483ZZTkigg==}
 
   parse-author@1.0.0:
     resolution: {integrity: sha512-OrNKo0jTFjJNCT0UKOPtnUctvGJvKdfB5ild+r3xwg/TgU5k2CCZW4fU9uJdKJ3njVFw5InP/2gd+n2vEXKgLQ==}
@@ -5907,7 +5907,7 @@ snapshots:
 
   paginationator@0.1.4: {}
 
-  parallel-http-request-node-mini-n8n@1.0.0:
+  parallel-http-request-node-mini-n8n@1.0.1:
     dependencies:
       axios: 1.13.2
       core-package-mini-n8n: 1.1.6

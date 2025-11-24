@@ -13,7 +13,6 @@ import { NodeBase } from "core-package-mini-n8n";
 import packageJson from "./package.json";
 import WorkflowRepository from "./repositories/workflow.repository";
 import Encrypter from "./utils/encrypter.util";
-import { randomUUID } from "crypto"
 import WorkflowUtil from "./utils/workflow.util";
 import CustomNodeService from "./services/custom-node.service";
 import { NotFoundException } from "./exception/not-found.exception";
@@ -109,45 +108,34 @@ app.get("/custom-nodes", async (req, res) => {
 })
 
 app.post("/workflows", async (req, res) => {
-  const name = req.body.name;
-  const workflowByName = await workflowRepository.findByName(name);
-  if (workflowByName) {
-    return res.status(400).json({
-      error: "Workflow already exists",
-    });
-  }
-
-  const sensitiveData: Array<{ key: string, value: string }> = req.body.sensitiveData;
-  if (sensitiveData && sensitiveData.length > 0) {
-    const encrypter = new Encrypter();
-    const encryptedData: { [key: string]: any } = {};
-    sensitiveData.forEach((item) => {
-      encryptedData[item.key] = encrypter.encrypt(item.value);
-    })
-    req.body.sensitiveData = encryptedData;
-  } else {
-    req.body.sensitiveData = null;
-  }
-
-  const firstNode = req.body.nodes[0];
-  if (firstNode.type === "webhook") {
-    req.body.webhookId = randomUUID();
-  }
-
-  const result = await workflowRepository.insertOne({
+  const result = await workflowService.create({
     name: req.body.name,
-    data: {
-      ...req.body,
-    },
+    nodes: req.body.nodes,
+    originalWorkflow: req.body.originalWorkflow,
+    sensitiveData: req.body.sensitiveData,
     webhookId: req.body.webhookId,
-    created_at: new Date(),
-    updated_at: new Date(),
   });
 
   return res.status(201).json({
     id: result.id,
   });
 });
+
+app.put("/workflows/:id", async (req, res, next) => {
+  try {
+    await workflowService.update({
+      id: req.params.id,
+      name: req.body.name,
+      nodes: req.body.nodes,
+      originalWorkflow: req.body.originalWorkflow,
+      sensitiveData: req.body.sensitiveData,
+      webhookId: req.body.webhookId,
+    });
+    return res.status(204).json({});
+  } catch(error) {
+    return next(error)
+  }
+})
 
 app.use("/webhooks/:id", async (req, res, next) => {
   try {
