@@ -8,6 +8,7 @@
     "build": "tsc",
     "prepublish": "pnpm run build",
     "preinstall": "pnpm run build",
+    "publish": "pnpm update && pnpm run build && npm publish --public",
     "start": "tsx src/index.ts"
   },
   "keywords": [],
