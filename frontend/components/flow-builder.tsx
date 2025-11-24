@@ -143,9 +143,9 @@ export default function FlowBuilder({
   const [sensitiveData, setSensitiveData] = useState<SensitiveData[]>([])
   const [isSensitiveDataModalOpen, setIsSensitiveDataModalOpen] = useState(false)
 
-  const { 
-    updateWorkflow, runWorkflow, 
-    logs, isLogsModalOpen, 
+  const {
+    updateWorkflow, runWorkflow,
+    logs, isLogsModalOpen,
     setIsLogsModalOpen, isRunningWorkflow,
     getCustomNodes, createWorkflow
   } = useWorkflow();
@@ -254,10 +254,6 @@ export default function FlowBuilder({
 
   const deleteNode = useCallback(
     (nodeId: string) => {
-      if (workflowToEdit == null && nodes.length == 1) {
-        toast.error("You need at least one node to start the Worflow");
-        return;
-      }
 
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
       setEdges((eds) =>
@@ -417,12 +413,17 @@ export default function FlowBuilder({
   };
 
   const saveWorkflow = async (isTest: boolean = false) => {
+    if (nodes.length == 0) {
+      toast.error("You need at least one node to start the Worflow");
+      return;
+    }
+
     const triggerEvent = nodes[0].type;
     const workflow: { [key: string]: any } = {
       triggerEvent,
       nodes: [],
     };
-
+   
     const mapNodesById: { [key: string]: any } = {};
     const nodesToProcess = [...nodes]
     for (let index = 0; index < nodesToProcess.length; index += 1) {
@@ -518,7 +519,7 @@ export default function FlowBuilder({
       });
     } else {
       const workflowCreated = await createWorkflow({
-        contextVariables: []  ,
+        contextVariables: [],
         sensitiveData: [...sensitiveData],
         name: flowName || "",
         originalWorkflow: {

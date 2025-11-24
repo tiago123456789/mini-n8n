@@ -38,13 +38,15 @@ class WorkflowService {
         headers: any,
     }): Promise<Array<{ [key: string]: any }>> {
         let sensitiveData: { [key: string]: any } = {};
+        let startAt: Date | null = null;
+        let endAt: Date | null = null;
+        let workflow: any = null;
         if (data.sensitiveData) {
             data.sensitiveData.forEach((item: { key: string, value: string }) => {
                 sensitiveData[item.key] = item.value;
             });
         }
 
-        let workflow = null;
         if (data.isEditMode) {
 
             workflow = await this.workflowRepository.findById(data.workflowId);
@@ -74,7 +76,7 @@ class WorkflowService {
         };
 
         try {
-            const startAt = new Date();
+            startAt = new Date();
 
             const register = await this.customNodeRepository.findAllEnabled();
             const packagesName = register.map((item) => item.package_name);
@@ -88,7 +90,7 @@ class WorkflowService {
                 params: data.params || {},
                 header: data.headers || {},
             })
-            const endAt = new Date();
+            endAt = new Date();
             const state = w.getState();
             const logs = this.workflowUtil.getLogs(state.steps)
 
@@ -103,7 +105,26 @@ class WorkflowService {
 
             return logs;
         } catch (error: any) {
-            throw error;
+            console.error(error);
+            const errorLog = [
+                {
+                    output: {
+                        type: "error",
+                        message: error.message,
+                        stack: error.stack,
+                    },
+                }
+            ]
+
+            if (workflow) {
+                await this.workflowRepository.insertExecutionLog({
+                    logs: errorLog,
+                    workflowId: workflow.id,
+                    startAt: startAt,
+                    endAt: new Date(),
+                } as WorkflowExecutionModel);
+            }
+            return errorLog;
         }
     }
 
@@ -152,9 +173,9 @@ class WorkflowService {
     }): Promise<void> {
         const result = await this.workflowRepository.findByWebhookId(data.webhookId);
         if (!result) {
-          throw new NotFoundException("Webhook not found");
+            throw new NotFoundException("Webhook not found");
         }
-      
+
         await this.trigger({
             workflowId: result.id,
             body: data.body,
@@ -166,7 +187,7 @@ class WorkflowService {
 
     async deleteOne(id: string) {
         await this.workflowRepository.deleteOne(id);
-    }        
+    }
 
     async getExecutionLogs(workflowId: string): Promise<Array<WorkflowExecutionModel>> {
         const results = await this.workflowRepository.getExecutionLogs(workflowId);
@@ -266,7 +287,7 @@ class WorkflowService {
                     sensitiveObject[item.key] = this.encrypter.encrypt(item.value);
                 }
             })
-        } 
+        }
 
         const sensitiveDataFromWorkflow: { [key: string]: any } = result.sensitiveData || {};
         sensitiveObject = {
