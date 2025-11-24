@@ -1,0 +1,22 @@
+{
+  "name": "core-package-mini-n8n",
+  "version": "1.1.6",
+  "description": "Code package to create custom nodes for mini-n8n",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "pnpm run build",
+    "preinstall": "pnpm run build",
+    "start": "tsx src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.7.1",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
