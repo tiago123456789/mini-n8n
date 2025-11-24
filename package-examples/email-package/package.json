@@ -1,0 +1,22 @@
+{
+	"name": "email-node-mini-n8n",
+	"version": "2.0.2",
+	"description": "Email Node",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"preinstall": "pnpm run build",
+		"start": "tsx src/index.ts"
+	},
+	"dependencies": {
+		"core-package-mini-n8n": "^1.1.3",
+		"nodemailer": "^7.0.10"
+	},
+	"devDependencies": {
+		"@types/nodemailer": "^7.0.4",
+		"ts-node": "^10.9.2",
+		"tsx": "^4.20.6",
+		"typescript": "^5.9.3"
+	}
+}
