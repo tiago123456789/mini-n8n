@@ -1,10 +1,29 @@
 import { memo } from "react";
 import { Handle, Position } from "reactflow";
-import { Globe, Trash2 } from "lucide-react";
+import { Copy, Globe, Trash2 } from "lucide-react";
 
-export const ApiNode = memo(({ data, isConnectable }) => {
+interface ApiNodeProps {
+  data: any;
+  isConnectable: boolean;
+}
+
+let name = "CustomNode"
+
+export const ApiNode = memo(({ data, isConnectable }: ApiNodeProps) => {
+  name = data.name;
   return (
     <div className="rounded-md border bg-white p-3 shadow-sm">
+      <button
+        className="absolute top-2 left-2 text-gray-400 hover:text-red-500 transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          data.duplicateNode();
+        }}
+        aria-label="Delete node"
+      >
+        <Copy className="h-4 w-4" />
+      </button>
+
       <button
         className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
         onClick={(e) => {
@@ -39,8 +58,9 @@ export const ApiNode = memo(({ data, isConnectable }) => {
         isConnectable={isConnectable}
         className="!bg-green-500"
       />
+      
     </div>
   );
 });
 
-ApiNode.displayName = "ApiNode";
+ApiNode.displayName ="ApiNode";

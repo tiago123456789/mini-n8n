@@ -2,14 +2,14 @@
 
 import { memo } from "react";
 import { Handle, Position } from "reactflow";
-import { Code2, Copy, Trash2 } from "lucide-react";
+import { Copy, Repeat, Trash2 } from "lucide-react";
 
-export const CodeNode = memo(({ data, isConnectable }) => {
-  const codePreview = data.code
-    ? data.code.split("\n").slice(0, 3).join("\n") +
-      (data.code.split("\n").length > 3 ? "..." : "")
-    : "// Add your code here...";
+interface LoopNodeProps {
+  data: any;
+  isConnectable: boolean;
+}
 
+export const LoopNode = memo<LoopNodeProps>(({ data, isConnectable }) => {
   return (
     <div className="rounded-md border bg-white p-3 shadow-sm relative">
       <button
@@ -33,26 +33,43 @@ export const CodeNode = memo(({ data, isConnectable }) => {
         <Trash2 className="h-4 w-4" />
       </button>
       <div className="flex items-center gap-2">
-        <Code2 className="h-5 w-5 text-purple-500" />
+        <Repeat className="h-5 w-5 text-blue-500" />
         <div className="font-medium">{data.label}</div>
       </div>
       <div className="text-xs font-medium text-muted-foreground">
         {data.name || "Unnamed Step"}
       </div>
+      <div className="mt-2 text-xs text-center text-muted-foreground">
+        {data.source ? `Loop over: ${data.source}` : "Configure loop source..."}
+      </div>
+      <div className="mt-2 flex justify-between text-xs">
+        <div className="text-blue-600">Loop</div>
+        <div className="text-gray-600">Done</div>
+      </div>
       <Handle
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        className="!bg-purple-500"
+        className="!bg-blue-500"
       />
       <Handle
         type="source"
         position={Position.Bottom}
+        id="loop"
+        style={{ left: "25%" }}
         isConnectable={isConnectable}
-        className="!bg-purple-500"
+        className="!bg-blue-600"
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="done"
+        style={{ left: "75%" }}
+        isConnectable={isConnectable}
+        className="!bg-gray-600"
       />
     </div>
   );
 });
 
-CodeNode.displayName = "CodeNode";
+LoopNode.displayName = "LoopNode";

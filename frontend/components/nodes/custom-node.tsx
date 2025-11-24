@@ -1,17 +1,18 @@
-"use client";
-
 import { memo } from "react";
 import { Handle, Position } from "reactflow";
-import { Code2, Copy, Trash2 } from "lucide-react";
+import { Copy, Globe, Trash2 } from "lucide-react";
 
-export const CodeNode = memo(({ data, isConnectable }) => {
-  const codePreview = data.code
-    ? data.code.split("\n").slice(0, 3).join("\n") +
-      (data.code.split("\n").length > 3 ? "..." : "")
-    : "// Add your code here...";
+interface CustomNodeProps {
+  data: any;
+  isConnectable: boolean;
+}
 
+let name = "CustomNode"
+
+export const CustomNode = memo(({ data, isConnectable }: CustomNodeProps) => {
+  name = data.name;
   return (
-    <div className="rounded-md border bg-white p-3 shadow-sm relative">
+    <div className="rounded-md border bg-white p-3 shadow-sm">
       <button
         className="absolute top-2 left-2 text-gray-400 hover:text-red-500 transition-colors"
         onClick={(e) => {
@@ -33,7 +34,7 @@ export const CodeNode = memo(({ data, isConnectable }) => {
         <Trash2 className="h-4 w-4" />
       </button>
       <div className="flex items-center gap-2">
-        <Code2 className="h-5 w-5 text-purple-500" />
+        <Globe className="h-5 w-5 text-blue-500" />
         <div className="font-medium">{data.label}</div>
       </div>
       <div className="text-xs font-medium text-muted-foreground">
@@ -43,16 +44,16 @@ export const CodeNode = memo(({ data, isConnectable }) => {
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        className="!bg-purple-500"
+        className="!bg-blue-500"
       />
       <Handle
         type="source"
         position={Position.Bottom}
         isConnectable={isConnectable}
-        className="!bg-purple-500"
+        className="!bg-blue-500"
       />
     </div>
   );
 });
 
-CodeNode.displayName = "CodeNode";
+CustomNode.displayName = name;

@@ -1,46 +1,37 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import axios from 'axios';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
-
-type Workflow = {
-    _id: string;
-    triggerEvent: string;
-    created_at: string;
-    name: string;
-};
+import React, { useEffect } from 'react';
+import useWorkflow from "@/hooks/useWorkflow"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ToastContainer } from 'react-toastify';
 
 const WorkflowsList = () => {
-    const [workflows, setWorkflows] = useState<Workflow[]>([]);
+    const {
+        triggerWorkflow,
+        deleteWorkflow,
+        workflows, getWorkflows
+    } = useWorkflow()
 
-    const getWorkflows = async () => {
-        const response = await axios.get('http://localhost:5000/workflows');
-        console.log(response.data.data);
-        setWorkflows(response.data.data);
-    };
 
-    const triggerWorkflow = async (workflowId: string) => {
-        await axios.get(`http://localhost:5000/workflows/${workflowId}/trigger`);
-    }
-
-    const deleteWorkflow = async (workflowId: string) => {
-        await axios.delete(`http://localhost:5000/workflows/${workflowId}`);
-        getWorkflows();
-    };
     useEffect(() => {
         getWorkflows();
     }, []);
 
     return (
-        <div>
-            <h1>Workflows List</h1>
-            <br/>
+        <div className="container mx-auto">
+            <ToastContainer />
+            <h1 className="text-4xl font-bold">Workflows</h1>
+            <br />
             <Link href={"/"}>
                 <Button>Criar Workflow</Button>
             </Link>
-            <br/>
-            <br/>
+            &nbsp;
+            <Link href={"/install-custom-packages"}>
+                <Button variant="outline">Install Custom Packages</Button>
+            </Link>
+            <br />
+            <br />
 
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -55,25 +46,47 @@ const WorkflowsList = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                     {workflows.map((workflow, index) => (
                         <tr key={index}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{workflow._id}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{workflow.id}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{workflow.triggerEvent}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{workflow.name}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{workflow.created_at}</td>
 
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <Button onClick={() => triggerWorkflow(workflow._id)}>Trigger</Button>
-                                &nbsp;
-                                <Button onClick={() => deleteWorkflow(workflow._id)}>Delete</Button>
-                                &nbsp;
-                                <Link href={`/workflows/${workflow._id}/edit`}>
-                                    <Button >Edit</Button>
-                                </Link>
+
+                                <DropdownMenu dir='ltr'>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline">Actions</Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56" align="start">
+                                        <DropdownMenuGroup>
+
+                                            {workflow.webhookId !== null && (
+                                                <DropdownMenuItem>
+                                                    <a target="_blank" href={`${process.env.NEXT_PUBLIC_API_URL}/webhooks/${workflow.webhookId}`}>
+                                                        Test Webhook
+                                                    </a>
+                                                </DropdownMenuItem>
+                                            )}
+                                            <DropdownMenuItem onClick={() => triggerWorkflow(workflow.id)}>
+                                                Trigger
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => deleteWorkflow(workflow.id)}>
+                                                Delete
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <Link href={`/workflows/${workflow.id}/edit`}>
+                                                    <span>Edit</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-            </div>
+        </div>
     );
 };
 

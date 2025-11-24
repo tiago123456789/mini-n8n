@@ -12,6 +12,7 @@ import ReactFlow, {
   type Connection,
   type Edge,
   type NodeTypes,
+  useStoreApi,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -19,21 +20,23 @@ import { ToastContainer, toast } from "react-toastify";
 import { WebhookNode } from "./nodes/webhook-node";
 import { ApiNode } from "./nodes/api-node";
 import { ConditionNode } from "./nodes/condition-node";
+import { LoopNode } from "./nodes/loop-node";
 import NodeConfigPanel from "./node-config-panel";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Save, Target } from "lucide-react";
+import { GitBranch, PlusCircle, Save, Target, Shield, Play } from "lucide-react";
 import { z } from "zod";
 import { CodeNode } from "./nodes/code-node";
-import axios from "axios";
-import { ContextVariable } from "./context-modal";
+import axios, { AxiosError } from "axios";
+import { SensitiveDataModal } from "./sensitive-data-modal";
+import { LogsModal } from "./logs-modal";
 import { FlowSidebar } from "./flow-sidebar";
+import { CustomNode } from "./nodes/custom-node";
+import ExecutionsDrawer from "./executions-drawer";
+import { useRouter } from 'next/navigation';
+import useWorkflow from "@/hooks/useWorkflow";
+import SensitiveData from "@/types/sensitive-data";
+import NativeNodeType from "@/types/native-node-type.type";
 
-const nodeTypes: NodeTypes = {
-  webhook: WebhookNode,
-  api: ApiNode,
-  condition: ConditionNode,
-  code: CodeNode,
-};
 
 const validationDataNodeTypes: {
   [key: string]: z.ZodObject<{ [key: string]: any }>;
@@ -52,41 +55,13 @@ const validationDataNodeTypes: {
   }),
   code: z.object({
     code: z.string(),
-    params: z.string(),
+  }),
+  loop: z.object({
+    source: z.string(),
   }),
 };
 
-const defaultDataByNodeTypes: { [key: string]: any } = {
-  api: {
-    label: "API",
-    name: "",
-    endpoint: "https://webhook.site/18eb8dca-7fba-4512-bf61-21392e905b60",
-    method: "GET",
-    headers: null,
-    body: null,
-  },
-  webhook: {
-    label: "Webhook",
-    name: "",
-  },
-  condition: {
-    data: {
-      label: "Condition",
-      name: "",
-      condition: {
-        left: "1",
-        operator: "==",
-        right: "1",
-      },
-      trueLabel: "True",
-      falseLabel: "False",
-    },
-  },
-  code: {
-    code: "function node(data) { console.log(data) }",
-    params: '{ "message": "Hi my friend"}',
-  },
-};
+
 
 const initialNodes = [
   {
@@ -98,40 +73,9 @@ const initialNodes = [
       name: "trigger_webhook_1",
     },
   },
-  {
-    id: "2",
-    type: "api",
-    position: { x: 250, y: 250 },
-    data: {
-      label: "API",
-      name: "trigger_api_2",
-      endpoint: "https://webhook.site/18eb8dca-7fba-4512-bf61-21392e905b60",
-      method: "GET",
-      headers: [{ key: "apiKey", value: "abaaafldjfasdfa", type: "raw" }],
-      body: [{ key: "message", value: "Hi my friend", type: "raw" }],
-    },
-  },
-  {
-    id: "3",
-    type: "condition",
-    position: { x: 250, y: 400 },
-    data: {
-      label: "Condition",
-      name: "trigger_condition_3",
-      condition: {
-        left: "1",
-        operator: "==",
-        right: "1",
-      },
-      trueLabel: "True",
-      falseLabel: "False",
-    },
-  },
 ];
 
 const initialEdges: Array<{ [key: string]: any }> = [
-  { id: "e1-2", source: "1", target: "2" },
-  { id: "e2-3", source: "2", target: "3" },
 ];
 
 
@@ -139,26 +83,75 @@ interface FlowBuilderProps {
   flowName?: string
   onFlowNameChange?: (name: string) => void
   workflowToEdit: any,
-  contextVariables?: ContextVariable[]
 }
 
-export default function FlowBuilder({ 
-  workflowToEdit, 
-  flowName, 
-  contextVariables 
+export default function FlowBuilder({
+  workflowToEdit,
+  flowName,
 }: FlowBuilderProps) {
+  const router = useRouter();
   const reactFlowWrapper = useRef(null);
   const [workflowId, setWorkflowId] = useState(null);
+  const [defaultDataByNodeTypes, setDefaultDataByNodeTypes] = useState<{ [key: string]: any }>({
+    api: {
+      label: "API",
+      name: "",
+      endpoint: "https://webhook.site/18eb8dca-7fba-4512-bf61-21392e905b60",
+      method: "GET",
+      headers: null,
+      body: null,
+    },
+    webhook: {
+      label: "Webhook",
+      name: "",
+    },
+    condition: {
+      data: {
+        label: "Condition",
+        name: "",
+        condition: {
+          left: "1",
+          operator: "==",
+          right: "1",
+        },
+        trueLabel: "True",
+        falseLabel: "False",
+      },
+    },
+    code: {
+      code: "function node() { console.log('Hello World') }",
+    },
+    loop: {
+      label: "Loop",
+      name: "",
+      source: "",
+    },
+  })
+  const [nodeTypes, setNodeTypes] = useState<NodeTypes>({
+    webhook: WebhookNode,
+    api: ApiNode,
+    condition: ConditionNode,
+    code: CodeNode,
+    loop: LoopNode,
+  });
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] =
     // @ts-ignore
     useEdgesState<Array<{ [key: string]: any }>>(initialEdges);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [customNodes, setCustomNodes] = useState<any[]>([])
+  const [sensitiveData, setSensitiveData] = useState<SensitiveData[]>([])
+  const [isSensitiveDataModalOpen, setIsSensitiveDataModalOpen] = useState(false)
+
+  const { 
+    updateWorkflow, runWorkflow, 
+    logs, isLogsModalOpen, 
+    setIsLogsModalOpen, isRunningWorkflow,
+    getCustomNodes, createWorkflow
+  } = useWorkflow();
 
   const onConnect = (params: Connection | Edge) => {
-    const mapNodesById: { [key: string]: any } = {
-      // id: node
-    };
+    const mapNodesById: { [key: string]: any } = {};
 
     for (let index = 0; index < nodes.length; index += 1) {
       const item = nodes[index];
@@ -168,10 +161,8 @@ export default function FlowBuilder({
     // @ts-ignore
     const nodeByType = mapNodesById[params?.source];
     const isSourceConditionNode = nodeByType && nodeByType.type == "condition";
-    console.log("########################");
-    console.log("########################");
-    console.log(isSourceConditionNode, nodeByType, nodeByType?.type);
-    if (isSourceConditionNode) {
+    const isSourceLoopNode = nodeByType && nodeByType.type == "loop";
+    if (isSourceConditionNode || isSourceLoopNode) {
       // @ts-ignore
       params.parentId = params.source;
       // @ts-ignore
@@ -187,16 +178,14 @@ export default function FlowBuilder({
       }
     }
 
-    console.log("####################");
-    console.log(edges);
     setEdges((eds) => addEdge(params, eds));
   };
 
-  const onNodeClick = (_, node) => {
+  const onNodeClick = (_: any, node: any) => {
     setSelectedNode({ ...node });
   };
 
-  const onNodeConfigChange = (nodeId, newData) => {
+  const onNodeConfigChange = (nodeId: string, newData: any) => {
     setNodes((nds) => [
       ...nds.map((node) => {
         if (node.id === nodeId) {
@@ -213,8 +202,14 @@ export default function FlowBuilder({
     ]);
   };
 
-  const addNode = (type) => {
+  const addNode = (type: string) => {
     const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    const data = {
+      ...defaultDataByNodeTypes[type],
+      label: type.charAt(0).toUpperCase() + type.slice(1),
+      name: `trigger_${typeLabel}_${nodes.length + 1}`.toLowerCase(),
+    }
+
     const newNode = {
       id: `${nodes.length + 1}`,
       type,
@@ -222,11 +217,7 @@ export default function FlowBuilder({
         x: 250,
         y: nodes.length > 0 ? nodes[nodes.length - 1].position.y + 150 : 100,
       },
-      data: {
-        ...defaultDataByNodeTypes[type],
-        label: typeLabel,
-        name: `trigger_${typeLabel}_${nodes.length + 1}`.toLowerCase(),
-      },
+      data,
     };
 
     setNodes((nds) => [...nds, { ...newNode }]);
@@ -236,9 +227,35 @@ export default function FlowBuilder({
     setSelectedNode(null);
   };
 
+  const duplicateNode =
+    (nodeId: string) => {
+      const node = nodes.find((node) => node.id === nodeId);
+      if (!node) {
+        return;
+      }
+
+      // @ts-ignore
+      const typeLabel = node.type.charAt(0).toUpperCase() + node.type.slice(1);
+      const newNode = {
+        id: `${nodes.length + 2}`,
+        type: node.type,
+        position: {
+          x: 250,
+          y: nodes.length > 0 ? nodes[nodes.length - 1].position.y + 150 : 100,
+        },
+        data: { ...node.data },
+      };
+
+      // @ts-ignore
+      newNode.data.label = node.type.charAt(0).toUpperCase() + node.type.slice(1);
+      newNode.data.name = `trigger_${typeLabel}_${nodes.length + 1}`.toLowerCase();
+      setNodes((nds) => [...nds, { ...newNode }]);
+    }
+
   const deleteNode = useCallback(
-    (nodeId) => {
-      if (nodes.length == 1) {
+    (nodeId: string) => {
+      if (workflowToEdit == null && nodes.length == 1) {
+        toast.error("You need at least one node to start the Worflow");
         return;
       }
 
@@ -246,6 +263,7 @@ export default function FlowBuilder({
       setEdges((eds) =>
         eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
       );
+      // @ts-ignore
       if (selectedNode && selectedNode.id === nodeId) {
         setSelectedNode(null);
       }
@@ -256,16 +274,17 @@ export default function FlowBuilder({
   const parseToSave = (
     item: { [key: string]: any },
     mapNodesById: { [key: string]: any },
-    ignoreNodeById: string[]
+    ignoreNodeById: { [key: string]: any },
+    index: number
   ) => {
-    if (item.type == "webhook") {
+    if (item.type == NativeNodeType.webhook) {
       return {
         type: item.type,
         name: item.data.name,
         input: {},
         output: {},
       };
-    } else if (item.type == "code") {
+    } else if (item.type == NativeNodeType.code) {
       return {
         type: item.type,
         name: item.data.name,
@@ -276,7 +295,7 @@ export default function FlowBuilder({
         input: {},
         output: {},
       };
-    } else if (item.type == "api") {
+    } else if (item.type == NativeNodeType.api) {
       return {
         type: item.type,
         name: item.data.name,
@@ -289,7 +308,7 @@ export default function FlowBuilder({
         input: {},
         output: {},
       };
-    } else if (item.type == "condition") {
+    } else if (item.type == NativeNodeType.condition) {
       // @ts-ignore
       const left = item?.data?.condition?.left;
       const leftType = left.startsWith("this.state") ? "expression" : "raw";
@@ -324,120 +343,268 @@ export default function FlowBuilder({
 
       // @ts-ignore
       itemToAdd.setting.success = edges
-        .filter((option) => {
+        .filter((option: { [key: string]: any }) => {
           return (
             // @ts-ignore
             option.parentId == item.id && option.pathCondition == "true"
           );
         })
-        .map((option) => {
+        .map((option: { [key: string]: any }) => {
           const node = mapNodesById[option.target];
           ignoreNodeById[node.id] = true;
-          return parseToSave(node, mapNodesById, ignoreNodeById);
+          return parseToSave(node, mapNodesById, ignoreNodeById, index);
         });
 
       // @ts-ignore
       itemToAdd.setting.fail = edges
-        .filter((option) => {
+        .filter((option: { [key: string]: any }) => {
           return (
             // @ts-ignore
             option.parentId == item.id && option.pathCondition == "false"
           );
         })
-        .map((option) => {
+        .map((option: { [key: string]: any }) => {
           const node = mapNodesById[option.target];
           ignoreNodeById[node.id] = true;
-          return parseToSave(node, mapNodesById, ignoreNodeById);
+          return parseToSave(node, mapNodesById, ignoreNodeById, index);
+        });
+
+      return itemToAdd;
+    } else if (item.type == NativeNodeType.loop) {
+      const itemToAdd = {
+        type: item.type,
+        name: item.data.name,
+        setting: {
+          source: item.data.source || [],
+          nodes: [],
+        },
+        input: {},
+        output: {},
+      };
+
+      // @ts-ignore
+      itemToAdd.setting.nodes = edges
+        .filter((option: { [key: string]: any }) => {
+          return (
+            // @ts-ignore
+            option.parentId == item.id && option.pathCondition == "loop"
+          );
+        })
+        .map((option: { [key: string]: any }, index: number) => {
+          const node = mapNodesById[option.target];
+          ignoreNodeById[node.id] = true;
+          return parseToSave(node, mapNodesById, ignoreNodeById, index);
         });
 
       return itemToAdd;
     }
+
+    const itemData = item.data;
+    delete itemData.isCustomNode;
+    delete itemData.name;
+
+
+    const typeLabel = item.type.charAt(0).toUpperCase() + item.type.slice(1);
+    item.data.name = `trigger_${typeLabel}_${index + 1}`.toLowerCase()
+
+    return {
+      type: item.type,
+      name: item.data.name,
+      setting: itemData,
+      input: {},
+      output: {},
+    }
   };
 
-  const saveWorkflow = async () => {
+  const saveWorkflow = async (isTest: boolean = false) => {
     const triggerEvent = nodes[0].type;
     const workflow: { [key: string]: any } = {
       triggerEvent,
       nodes: [],
     };
 
-    const mapNodesById: { [key: string]: any } = {
-      // id: node
-    };
-
-    for (let index = 0; index < nodes.length; index += 1) {
-      const item = nodes[index];
+    const mapNodesById: { [key: string]: any } = {};
+    const nodesToProcess = [...nodes]
+    for (let index = 0; index < nodesToProcess.length; index += 1) {
+      const item = nodesToProcess[index];
       // @ts-ignore
-      const schemaValidation = validationDataNodeTypes[item.type] as z.Schema;
-      const result = schemaValidation.safeParse(item.data);
 
-      if (!result.success) {
-        toast.error(
-          // @ts-ignore
-          `Você precisa preencher as informações do node ${item.data.name}`
-        );
-        console.error("❌ Validation errors:", result.error.errors);
-        return;
+      const isCustomNode = !validationDataNodeTypes[item.type];
+      if (isCustomNode) {
+        const schema = {}
+
+        // @ts-ignore
+        item.data.properties.filter(property => property.required).forEach((property: { [key: string]: any }) => {
+          if (property.name) {
+            if (property.required) {
+              // @ts-ignore
+              schema[property.name] = z.string();
+            } else {
+              // @ts-ignore
+              schema[property.name] = z.string().optional();
+            }
+          }
+        });
+
+        const schemaValidation = z.object(schema);
+        const result = schemaValidation.safeParse(item.data);
+        if (!result.success) {
+          toast.error(
+            `You need to fill the information of the node ${item.data.name}`
+          );
+          return;
+        }
+      } else {
+        // @ts-ignore
+        const schemaValidation = validationDataNodeTypes[item.type] as z.Schema;
+        const result = schemaValidation.safeParse(item.data);
+
+        if (!result.success) {
+          toast.error(
+            // @ts-ignore
+            `You need to fill the information of the node ${item.data.name}`
+          );
+          return;
+        }
       }
 
       mapNodesById[item.id] = item;
     }
 
-    const ignoreNodeById: { [key: number]: boolean } = {};
-
-    for (let index = 0; index < nodes.length; index += 1) {
-      const item = nodes[index];
-      // @ts-ignore
+    const ignoreNodeById: { [key: string]: boolean } = {};
+    for (let index = 0; index < nodesToProcess.length; index += 1) {
+      const item = nodesToProcess[index];
       if (ignoreNodeById[item.id]) {
         continue;
       }
 
-      workflow.nodes.push(parseToSave(item, mapNodesById, ignoreNodeById));
+      workflow.nodes.push(
+        parseToSave(
+          item,
+          mapNodesById,
+          ignoreNodeById,
+          index
+        )
+      );
+    }
+
+    if (isTest) {
+      runWorkflow({
+        isEditMode: workflowToEdit != null,
+        workflowId: workflowToEdit?.id,
+        contextVariables: [],
+        sensitiveData: [...sensitiveData],
+        name: flowName || "",
+        originalWorkflow: {
+          nodes: [...nodes],
+          edges: [...edges],
+        },
+        ...workflow
+      });
+      return;
     }
 
     if (workflowId) {
-      await axios.put (`http://localhost:5000/${workflowId}`, {
-        contextVariables: contextVariables,
-        name: flowName,
+      await updateWorkflow({
+        workflowId: workflowId,
+        contextVariables: [],
+        name: flowName || "",
+        sensitiveData: [...sensitiveData],
         originalWorkflow: {
-          nodes: nodes,
-          edges: edges,
+          nodes: [...nodes],
+          edges: [...edges],
         },
         ...workflow
       });
-      toast.success("Workflow atualizado com sucesso");
     } else {
-      await axios.post("http://localhost:5000/", {
-        contextVariables: contextVariables,
-        name: flowName,
+      const workflowCreated = await createWorkflow({
+        contextVariables: []  ,
+        sensitiveData: [...sensitiveData],
+        name: flowName || "",
         originalWorkflow: {
-          nodes: nodes,
-          edges: edges,
+          nodes: [...nodes],
+          edges: [...edges],
         },
-        ...workflow
+        nodes: [...workflow.nodes],
       });
 
-      toast.success("Workflow salvo com sucesso");
+      setTimeout(() => {
+        router.push(`/workflows/${workflowCreated.id}/edit`);
+      }, 1000);
     }
-    
+
   };
+
+  const loadCustomNodes = async () => {
+    const customNodes = await getCustomNodes();
+    const items: any[] = [];
+    const itemsTypes: any = {};
+    const defaultDataByNodeTypesToCustomNodes: { [key: string]: any } = {};
+    customNodes.forEach((node: any) => {
+      itemsTypes[node.name] = CustomNode;
+      const defaultData: { [key: string]: any } = {}
+      node.properties.forEach((prop: any) => {
+        defaultData[prop.name] = prop.default
+      });
+
+      defaultDataByNodeTypesToCustomNodes[node.name] = {
+        ...defaultData,
+        properties: node.properties,
+        isCustomNode: node.isCustomNode
+      };
+
+      items.push({
+        type: node.name,
+        label: node.name,
+        icon: GitBranch,
+        description: node.description,
+        color: "text-blue-500",
+        bgColor: "bg-blue-50",
+        borderColor: "border-blue-200",
+      });
+    })
+    setCustomNodes(items);
+    setNodeTypes({ ...nodeTypes, ...itemsTypes });
+    setDefaultDataByNodeTypes({
+      ...defaultDataByNodeTypes,
+      ...defaultDataByNodeTypesToCustomNodes
+    });
+  }
 
   useEffect(() => {
     if (workflowToEdit) {
-      setNodes(workflowToEdit.originalWorkflow.nodes);
-      setEdges(workflowToEdit.originalWorkflow.edges);
-      setWorkflowId(workflowToEdit._id);
+      loadCustomNodes().then(() => {
+        workflowToEdit.originalWorkflow.nodes = workflowToEdit.originalWorkflow.nodes.map((node: any, index: number) => {
+          const type = node.type
+          const nodeDefaultData = defaultDataByNodeTypes[type]
+          node.data.isCustomNode = nodeDefaultData.isCustomNode || false
+          const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+          node.data.name = `trigger_${typeLabel}_${index + 1}`.toLowerCase()
+          return node;
+        })
+        setNodes(workflowToEdit.originalWorkflow.nodes);
+        setEdges(workflowToEdit.originalWorkflow.edges);
+        setWorkflowId(workflowToEdit.id);
+        setSensitiveData([...workflowToEdit.sensitiveData]);
+      });
     }
   }, [workflowToEdit]);
 
   useEffect(() => {
     document.title = `${flowName} - Flow Builder`
+
   }, [flowName])
+
+  useEffect(() => {
+    if (!workflowToEdit) {
+      loadCustomNodes();
+    }
+  }, [])
 
 
   return (
     <div className="flex h-full">
-      <FlowSidebar onAddNode={addNode} />
+      <FlowSidebar onAddNode={addNode} customNodes={customNodes} />
       <ReactFlowProvider>
         <div ref={reactFlowWrapper} className="flex-1 h-[calc(100vh-4rem)]">
           <ReactFlow
@@ -446,6 +613,7 @@ export default function FlowBuilder({
               data: {
                 ...node.data,
                 deleteNode: () => deleteNode(node.id),
+                duplicateNode: () => duplicateNode(node.id),
               },
             }))}
             edges={edges}
@@ -459,6 +627,15 @@ export default function FlowBuilder({
             <Controls />
             <Background />
             <Panel position="top-right" className="flex gap-2">
+              <ExecutionsDrawer workflowId={workflowToEdit?.id} />
+              <Button size="sm" variant="outline" onClick={() => saveWorkflow(true)}>
+                <Play className="mr-2 h-4 w-4" />
+                Run Workflow
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setIsSensitiveDataModalOpen(true)}>
+                <Shield className="mr-2 h-4 w-4" />
+                Sensitive Data
+              </Button>
               <Button size="sm" onClick={() => saveWorkflow()}>
                 <Save className="mr-2 h-4 w-4" />
                 Save Workflow
@@ -475,6 +652,18 @@ export default function FlowBuilder({
             />
           </>
         )}
+        <SensitiveDataModal
+          isOpen={isSensitiveDataModalOpen}
+          onClose={() => setIsSensitiveDataModalOpen(false)}
+          sensitiveData={sensitiveData}
+          onSave={setSensitiveData}
+        />
+        <LogsModal
+          isOpen={isLogsModalOpen}
+          onClose={() => setIsLogsModalOpen(false)}
+          logs={logs}
+          isLoading={isRunningWorkflow}
+        />
       </ReactFlowProvider>
       <ToastContainer />
     </div>

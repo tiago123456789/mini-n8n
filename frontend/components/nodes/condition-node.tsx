@@ -1,11 +1,21 @@
 import { memo } from "react";
 import { Handle, Position } from "reactflow";
-import { GitBranch, Trash2 } from "lucide-react";
+import { Copy, GitBranch, Trash2 } from "lucide-react";
 import { translate } from "@/utils/operator";
 
 export const ConditionNode = memo(({ data, isConnectable }) => {
   return (
     <div className="rounded-md border bg-white p-3 shadow-sm">
+      <button
+              className="absolute top-2 left-2 text-gray-400 hover:text-red-500 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                data.duplicateNode();
+              }}
+              aria-label="Delete node"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
       <button
         className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
         onClick={(e) => {
