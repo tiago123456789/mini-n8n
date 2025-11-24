@@ -7,7 +7,8 @@
     "build": "tsc",
     "migration:run": "knex migrate:latest --knexfile ./config/knexfile.ts",
     "migration:rollback": "knex migrate:rollback --knexfile ./config/knexfile.ts",
-    "start:dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "start:dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only index.ts",
+    "start": "NODE_ENV=development node dist/api/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

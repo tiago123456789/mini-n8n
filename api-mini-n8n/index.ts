@@ -244,16 +244,9 @@ async function loadCustomNodes() {
   customNodes = await packageUtil.load(packagesName);
 }
 
-// Optional: Keep app.listen() for local development
-if (process.env.NODE_ENV === 'development') {
-  app.listen(5000, async () => {
-    console.log("Server running at port 5000");
-  });
+app.listen(5000, async () => {
+  console.log("Server running at port 5000");
+});
 
-}
-
-const application: any = app
-
-export default application;
 
 
