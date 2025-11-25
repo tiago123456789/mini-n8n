@@ -71,16 +71,16 @@ class WorkflowEngine {
     nodes: Array<{ [key: string]: any }>,
     contextVariables: Array<{ [key: string]: any }>,
     sensitiveData: Array<{ [key: string]: any }>,
-    triggerEvent: string
-  }, requestData: any) {
+    triggerEvent: string,
+    steps: { [key: string]: any },
+  }, requestData: any, steps: { [key: string]: any } | undefined = undefined) {
     this.state = workflowToProcess;
     this.state.nodes = this.getWorkflowAsLinkedList(workflowToProcess);
     this.state.context = this.getWorkflowContextVariables(workflowToProcess);
     this.state.sensitiveData = workflowToProcess.sensitiveData;
-    if (this.state.triggerEvent == "webhook") {
-      this.state.request = requestData;
-    }
-
+    this.state.request = requestData;
+    this.state.steps = {...this.state.steps, ...workflowToProcess.steps};
+     
     const instanceByType: { [key: string]: (state: any) => NodeBase } = {
       webhook: (state: any) => new WebhookNode(state),
       api: (state: any) => new HttpRequestNode(state),
@@ -111,9 +111,11 @@ class WorkflowEngine {
       const output: NodeBase | LinkedList = await instance.execute({
         ...item,
         settings: item.setting || {},
+        steps: this.state.steps,
       });
 
       if (output instanceof LinkedList) {
+        // @ts-ignore
         start = output.head;
         this.state.steps[name || "default"] = {
           output: {},
@@ -121,23 +123,6 @@ class WorkflowEngine {
         }
         continue;
       }
-      //   //   // if (!nodeByType[nodeDataToProcess.getConfig().type]) {
-      //   //   //   instance = this.customNodeManager.getCustomNodeByType(nodeDataToProcess.getConfig().type, this.state);
-      //   //   //   name = nodeDataToProcess.getConfig().name;
-      //   //   // } else {
-
-      //   //   console.log(nodeDataToProcess.getConfig().type)
-      //   // instance = nodeByType[nodeDataToProcess.getConfig().type];
-      //   // name = nodeDataToProcess.getConfig().name;
-      //   //   // }
-
-      //   // const output = await instance.execute(nodeDataToProcess);
-
-      // if (nodeDataToProcess.getConfig().type == "condition") {
-      //   start = output.head;
-      //   this.state.steps[name] = nodeDataToProcess;
-      //   continue;
-      // }
 
       this.state.steps[name || "default"] = {
         output,

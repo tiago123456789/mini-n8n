@@ -28,8 +28,6 @@ export default class LoopNode extends NodeBase {
         }
 
         const workflowToRun = {
-            id: "test",
-            triggerEvent: "manual",
             nodes: setting.nodes,
             steps: steps,
             contextVariables: this.state.contextVariables || {},
@@ -40,6 +38,7 @@ export default class LoopNode extends NodeBase {
             const item = source[index];
             steps[node.name].currentItem = item
             await this.engine.process(workflowToRun)
+
         }
 
         this.state.steps = {...this.state.steps, ...steps}

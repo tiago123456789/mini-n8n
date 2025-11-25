@@ -2,7 +2,6 @@ import { NodeBase } from "core-package-mini-n8n"
 
 class PackageUtil {
     
-
     async load(customPackages: Array<string>, state: any = {}): Promise<Array<NodeBase>> {
         const customNode: Array<NodeBase> = []
         for (const customPackage of customPackages) {

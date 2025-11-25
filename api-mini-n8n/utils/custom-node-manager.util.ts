@@ -24,6 +24,7 @@ class CustomNodeManager {
     async getCustomNodeByType(type: string, state: any): Promise<NodeBase> {
         await this.init(state);
 
+
         const customNode = this.customNodes.find((item) => {
             return item.getConfig().type.toLowerCase() == type.toLowerCase()
         });

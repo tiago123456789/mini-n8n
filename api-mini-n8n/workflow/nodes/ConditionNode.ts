@@ -15,17 +15,9 @@ export default class ConditionNode extends NodeBase {
   }
 
   execute(node: NodeInput): Promise<NodeReturn | LinkedList> {
-    const setting = node.setting;
-
-    const leftValue =
-      setting.condition.left.type == "raw"
-        ? setting.condition.left.value
-        : eval(setting.condition.left.value);
-
-    const rightValue =
-      setting.condition.right.type == "raw"
-        ? setting.condition.right.value
-        : eval(setting.condition.right.value);
+    const setting = node.settings;
+    const leftValue = this.parseExpression(setting.condition.left.value)
+    const rightValue = this.parseExpression(setting.condition.right.value)
 
     const operatorMap: {[key: string]: (left: string, right: string) => boolean} = {
       "==": (left: string, right: string) => left == right,
