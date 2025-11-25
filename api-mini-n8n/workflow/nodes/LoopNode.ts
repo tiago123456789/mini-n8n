@@ -37,7 +37,18 @@ export default class LoopNode extends NodeBase {
         for (let index = 0; index < source.length; index += 1) {
             const item = source[index];
             steps[node.name].currentItem = item
+            this.state.steps = {
+                ...this.state.steps, 
+                ...steps,
+            }
+
             await this.engine.process(workflowToRun)
+            this.state.steps = {
+                ...this.state.steps, 
+                ...steps,
+                ...this.engine.getState().steps
+            }
+
 
         }
 

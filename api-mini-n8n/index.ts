@@ -66,6 +66,7 @@ app.put('/custom-nodes-update', async (req, res, next) => {
     }
 
     execSync(`pnpm update ${body.packageName}`);
+    await loadCustomNodes();
     return res.status(204).json({});
   } catch (error: any) {
     return next(error)

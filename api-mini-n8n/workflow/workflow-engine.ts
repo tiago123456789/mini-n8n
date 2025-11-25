@@ -100,6 +100,7 @@ class WorkflowEngine {
       let instance: NodeBase | undefined;
       let name: string | undefined = item.name;
 
+
       if (!instanceByType[item.type]) {
         instance = await this.customNodeManager.getCustomNodeByType(item.type, this.state)
       } else {

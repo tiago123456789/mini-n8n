@@ -34,10 +34,13 @@ export default class ConditionNode extends NodeBase {
       throw new Error("Invalid operator");
     }
 
+    console.log(leftValue)
+    console.log(rightValue)
+    console.log(operator)
     if (operatorMap[operator](leftValue, rightValue)) {
-      return setting?.success;
+      return setting.success;
     } else {
-      return setting?.fail;
+      return setting.fail;
     }
   }
 };

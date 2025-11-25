@@ -21,13 +21,11 @@ class CodeNode extends NodeBase {
     let code = `
     ${Buffer.from(setting.code, "base64").toString('utf-8')}
     
-    result = node()
+    node()
     `
 
-    let result = {}
     code = this.parseExpression(code)
-    vm.runInThisContext(code, { result: result })
-    
+    const result = vm.runInThisContext(code)
     return result
   }
 }
