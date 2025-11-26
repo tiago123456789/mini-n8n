@@ -1,4 +1,4 @@
-import { Node, LinkedList, NodeBase, NodeInput } from "core-package-mini-n8n";
+import { Node, LinkedList, NodeBase, NodeInput, NodeReturn } from "core-package-mini-n8n";
 import CustomNodeManager from "../utils/custom-node-manager.util";
 
 import CodeNode from "./nodes/CodeNode";
@@ -73,7 +73,7 @@ class WorkflowEngine {
     sensitiveData: Array<{ [key: string]: any }>,
     triggerEvent: string,
     steps: { [key: string]: any },
-  }, requestData: any, steps: { [key: string]: any } | undefined = undefined) {
+  }, requestData: any) {
     this.state = workflowToProcess;
     this.state.nodes = this.getWorkflowAsLinkedList(workflowToProcess);
     this.state.context = this.getWorkflowContextVariables(workflowToProcess);
@@ -96,7 +96,7 @@ class WorkflowEngine {
     let start: { [key: string]: any } | LinkedList | null = this.state.nodes.head;
     while (start != null) {
       // @ts-ignore
-      const item: { type: string, [key: string]: any } = start?.value;
+      const item: { type: string, name: string, [key: string]: any } = start?.value;
       let instance: NodeBase | undefined;
       let name: string | undefined = item.name;
 
@@ -108,8 +108,7 @@ class WorkflowEngine {
         instance = instanceByType[item.type](this.state);
       }
 
-      // @ts-ignore
-      const output: NodeBase | LinkedList = await instance.execute({
+      const output: NodeReturn | LinkedList = await instance.execute({
         ...item,
         settings: item.setting || {},
         steps: this.state.steps,

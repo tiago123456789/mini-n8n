@@ -1,7 +1,10 @@
 FROM node:20-slim   
 
-ENV DB_URL=""
-ENV ENCRYPT_KEY=""
+ARG DB_URL=""
+ARG ENCRYPT_KEY=""
+
+ENV DB_URL=${DB_URL}
+ENV ENCRYPT_KEY=${ENCRYPT_KEY}
 
 WORKDIR /app
 
@@ -17,6 +20,7 @@ RUN pnpm install
 
 RUN pnpm run build
 
+RUN pnpm run setup:packages
 
 EXPOSE 5000
 

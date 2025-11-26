@@ -9,6 +9,7 @@
     "migration:rollback": "knex migrate:rollback --knexfile ./config/knexfile.ts",
     "start:dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only index.ts",
     "start": "NODE_ENV=development node dist/api/index.js",
+    "setup:packages": "ts-node setupPackages.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -24,6 +25,8 @@
     "email-node-mini-n8n": "^2.0.2",
     "express": "^5.1.0",
     "firecrawl-node-mini-n8n": "^2.0.2",
+    "get-language-project": "^1.1.0",
+    "github-node-mini-n8n": "^1.1.0",
     "knex": "^3.1.0",
     "mongoose": "^8.20.1",
     "openai-message-model-node-mini-n8n": "^2.0.2",
