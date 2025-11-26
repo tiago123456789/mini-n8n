@@ -83,7 +83,7 @@ export function FlowSidebar({ onAddNode, customNodes }: FlowSidebarProps) {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-auto p-3">
+      <div className="w-4/4 h-full max-h-screen overflow-y-auto flex flex-col flex-grow">
         <div className={cn("space-y-2", collapsed && "space-y-3")}>
           {nodeTypes.map((nodeType) => (
             <TooltipProvider key={nodeType.type} delayDuration={0}>

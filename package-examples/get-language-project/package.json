@@ -1,0 +1,29 @@
+{
+	"name": "get-language-project",
+	"version": "1.1.0",
+	"description": "Get Language Project from GITHUB Node",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"prepublish": "pnpm run build",
+		"preinstall": "pnpm run build",
+		"start": "tsx src/index.ts",
+		"test": "jest ./tests/*.spec.ts"
+	},
+	"dependencies": {
+		"axios": "^1.13.2",
+		"core-package-mini-n8n": "^1.1.5"
+	},
+	"devDependencies": {
+		"@jest/globals": "^30.2.0",
+		"@types/jest": "^30.0.0",
+		"@types/nodemailer": "^7.0.4",
+		"jest": "^30.2.0",
+		"ts-jest": "^29.4.5",
+		"ts-node": "^10.9.2",
+		"tsx": "^4.20.6",
+		"typescript": "^5.9.3"
+	}
+}

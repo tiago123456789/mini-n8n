@@ -1,4 +1,5 @@
 import { NodeBase } from "core-package-mini-n8n"
+import { execSync } from "child_process"
 
 class PackageUtil {
     
@@ -23,6 +24,15 @@ class PackageUtil {
             return new instance.default.default(state)
         }
     }
+
+    async install(customPackages: Array<string>): Promise<void> {
+        for (const customPackage of customPackages) {
+            console.log('Installing package: ' + customPackage)
+            const result = execSync(`pnpm install ${customPackage}`)
+            console.log(result.toString())
+        }
+    }
+        
 }
 
 export default PackageUtil

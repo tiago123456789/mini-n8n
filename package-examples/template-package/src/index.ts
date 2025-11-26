@@ -1,12 +1,11 @@
-import nodemailer from "nodemailer";
 import { NodeBase, NodeConfig, NodeInput, NodeReturn } from "core-package-mini-n8n"
 
 class ExampleNode extends NodeBase {
-    constructor() {
-        super();
+    constructor(state: any) {
+        super(state);
     }
 
-    getConfig(): NodeConfig {
+    getConfig(): NodeConfig {   
         return {
             name: "example-node-mini-n8n", // Name e type needs to be the same
             type: "example-node-mini-n8n", // Name e type needs to be the same

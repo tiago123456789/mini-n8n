@@ -6,6 +6,10 @@ services:
     build: 
       context: ./api-mini-n8n
       dockerfile: Dockerfile
+      args:
+        - DB_URL=
+        - ENCRYPT_KEY=
+
     ports:
       - "5000:5000"
     env_file:

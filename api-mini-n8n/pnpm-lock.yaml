@@ -32,6 +32,12 @@ importers:
       firecrawl-node-mini-n8n:
         specifier: ^2.0.2
         version: 2.0.2
+      get-language-project:
+        specifier: ^1.1.0
+        version: 1.1.0
+      github-node-mini-n8n:
+        specifier: ^1.1.0
+        version: 1.1.0
       knex:
         specifier: ^3.1.0
         version: 3.1.0(pg@8.16.3)
@@ -1386,6 +1392,9 @@ packages:
     resolution: {integrity: sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==}
     engines: {node: '>= 0.4'}
 
+  get-language-project@1.1.0:
+    resolution: {integrity: sha512-0cxlmZzCj8Od67DRrxibUr/FxTSsJlDD7UnnQa7iBt1XwcbHjPrjjs3fKSoo/dZz+GWe4p5gEoDUfs2LUYUUrA==}
+
   get-package-type@0.1.0:
     resolution: {integrity: sha512-pjzuKtY64GYfWizNAJ0fr9VqttZkNiK2iS430LtIHzjBEr6bX8Am2zm4sW4Ro5wjWW5cAlRL1qAMTcXbjNAO2Q==}
     engines: {node: '>=8.0.0'}
@@ -1423,6 +1432,9 @@ packages:
   git-repo-name@0.6.0:
     resolution: {integrity: sha512-DF4XxB6H+Te79JA08/QF/IjIv+j+0gF990WlgAX3SXXU2irfqvBc/xxlAIh6eJWYaKz45MrrGVBFS0Qc4bBz5g==}
     engines: {node: '>=0.8'}
+
+  github-node-mini-n8n@1.1.0:
+    resolution: {integrity: sha512-2s1tnf08yhfpU+O1Xe38hDxy/2HeHUwB/d4oqJ5BZIEWpRLNmTj5pr7YlgGn0NtLm9DrxNmyZZEdPNCQaRquDw==}
 
   glob-base@0.3.0:
     resolution: {integrity: sha512-ab1S1g1EbO7YzauaJLkgLp7DZVAqj9M/dvKlTt8DkXA2tiOIcSMrlVI2J1RZyB5iJVccEscjGn+kpOG9788MHA==}
@@ -4822,6 +4834,13 @@ snapshots:
       hasown: 2.0.2
       math-intrinsics: 1.1.0
 
+  get-language-project@1.1.0:
+    dependencies:
+      axios: 1.13.2
+      core-package-mini-n8n: 1.1.6
+    transitivePeerDependencies:
+      - debug
+
   get-package-type@0.1.0: {}
 
   get-proto@1.0.1:
@@ -4863,6 +4882,13 @@ snapshots:
       file-name: 0.1.0
       lazy-cache: 1.0.4
       remote-origin-url: 0.5.3
+
+  github-node-mini-n8n@1.1.0:
+    dependencies:
+      axios: 1.13.2
+      core-package-mini-n8n: 1.1.6
+    transitivePeerDependencies:
+      - debug
 
   glob-base@0.3.0:
     dependencies:
