@@ -1,6 +1,6 @@
 {
 	"name": "template-node-mini-n8n",
-	"version": "2.0.1",
+	"version": "1.0.0",
 	"description": "Template Node",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

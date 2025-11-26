@@ -2,11 +2,6 @@ version: '3'
 
 services:
 
-  code-executor:
-    build: ./code-executor
-    networks:
-      - poc-mini-n8n
-
   api-mini-n8n:
     build: 
       context: ./api-mini-n8n
@@ -15,24 +10,9 @@ services:
       - "5000:5000"
     env_file:
       - ./api-mini-n8n/.env
-    depends_on:
-      - mongo
-    networks:
-      - poc-mini-n8n
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
     networks:
       - poc-mini-n8n
 
 networks:
   poc-mini-n8n:
     driver: bridge
-
-volumes:
-  mongo_data:
-  

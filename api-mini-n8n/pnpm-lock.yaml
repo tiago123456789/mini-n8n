@@ -62,6 +62,12 @@ importers:
       telegram-node-mini-n8n:
         specifier: ^1.0.1
         version: 1.0.1
+      todoits-node-mini-n8n:
+        specifier: ^1.0.3
+        version: 1.0.3
+      trello-node-mini-n8n:
+        specifier: ^1.0.0
+        version: 1.0.0
       turso-db-node-mini-n8n:
         specifier: ^2.0.1
         version: 2.0.1
@@ -2913,6 +2919,9 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
+  todoits-node-mini-n8n@1.0.3:
+    resolution: {integrity: sha512-blV5XOw7Plc1Tsu8LBpKdohWFeCWTfIFQWZC6CpS9ILiiiIulmAiM10SO2GOK2RvUhnZGF7eE20i356/Jajo7w==}
+
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
@@ -2928,6 +2937,9 @@ packages:
   tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
+
+  trello-node-mini-n8n@1.0.0:
+    resolution: {integrity: sha512-O8n87Xs6Vg0OJbhF2R7dw/X8r+qUuWE+qBlGB9K2mCCPvo62+SD6k/22o4QDZX1YTNkNdKSGcNI7PqGqqxKjBw==}
 
   trim-leading-lines@0.1.1:
     resolution: {integrity: sha512-ViFS8blDWJN4Jg10fyZ+sIAfkSSAn5NiTVywc3kKtMWK3DZjaV7FV86oX3i9KY6/gqYkdka/UNeM2/NMGttiyA==}
@@ -6661,6 +6673,13 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
+  todoits-node-mini-n8n@1.0.3:
+    dependencies:
+      axios: 1.13.2
+      core-package-mini-n8n: 1.1.6
+    transitivePeerDependencies:
+      - debug
+
   toidentifier@1.0.1: {}
 
   touch@3.1.1: {}
@@ -6670,6 +6689,13 @@ snapshots:
       punycode: 2.3.1
 
   tree-kill@1.2.2: {}
+
+  trello-node-mini-n8n@1.0.0:
+    dependencies:
+      axios: 1.13.2
+      core-package-mini-n8n: 1.1.6
+    transitivePeerDependencies:
+      - debug
 
   trim-leading-lines@0.1.1:
     dependencies:

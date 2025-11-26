@@ -34,6 +34,8 @@
     "redis-node-mini-n8n": "^2.0.2",
     "serpapi-node-mini-n8n": "^2.0.2",
     "telegram-node-mini-n8n": "^1.0.1",
+    "todoits-node-mini-n8n": "^1.0.3",
+    "trello-node-mini-n8n": "^1.0.0",
     "turso-db-node-mini-n8n": "^2.0.1",
     "uninstall": "^0.0.0",
     "update": "^0.7.4"
