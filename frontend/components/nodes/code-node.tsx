@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { Handle, Position } from "reactflow";
-import { Code2, Trash2 } from "lucide-react";
+import { Code2, Copy, Trash2 } from "lucide-react";
 
 export const CodeNode = memo(({ data, isConnectable }) => {
   const codePreview = data.code
@@ -12,6 +12,16 @@ export const CodeNode = memo(({ data, isConnectable }) => {
 
   return (
     <div className="rounded-md border bg-white p-3 shadow-sm relative">
+      <button
+        className="absolute top-2 left-2 text-gray-400 hover:text-red-500 transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          data.duplicateNode();
+        }}
+        aria-label="Delete node"
+      >
+        <Copy className="h-4 w-4" />
+      </button>
       <button
         className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
         onClick={(e) => {

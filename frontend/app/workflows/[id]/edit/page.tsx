@@ -1,21 +1,16 @@
 "use client";
 import FlowBuilder from "@/components/flow-builder";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import useWorkflow from "@/hooks/useWorkflow";
 
 export default function Home({ params }: { params: { id: string } }) {
-  const [workflow, setWorkflow] = useState(null);
+  const { workflow, getWorkflowById } = useWorkflow()
 
-  const getWorkflowById = async () => {
-    const id = params.id;
-    const workflow = await axios.get(`http://localhost:5000/workflows/${id}`);
-    setWorkflow(workflow.data.data);
-  }
 
   useEffect(() => {
-    getWorkflowById()
+    getWorkflowById(params.id)
   }, []);
 
   return (
@@ -24,7 +19,7 @@ export default function Home({ params }: { params: { id: string } }) {
       <div className="flex h-16 items-center border-b px-4">
         <h1 className="text-xl font-bold">Flow Builder</h1>
         <Link className="ml-auto" href="/workflows">
-          <Button>Go to list</Button>
+          <Button>Go to Workflows</Button>
         </Link>
       </div>
       <div className="flex-1">

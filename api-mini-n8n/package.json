@@ -1,10 +1,14 @@
 {
   "name": "poc-mini-n8n",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "MINI N8N Proof of concept",
+  "main": "dist/api/index.js",
   "scripts": {
-    "start:dev": "nodemon ./index.js",
+    "build": "tsc",
+    "migration:run": "knex migrate:latest --knexfile ./config/knexfile.ts",
+    "migration:rollback": "knex migrate:rollback --knexfile ./config/knexfile.ts",
+    "start:dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only index.ts",
+    "start": "NODE_ENV=development node dist/api/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,14 +16,37 @@
   "license": "ISC",
   "packageManager": "pnpm@10.7.1",
   "dependencies": {
-    "axios": "^1.9.0",
+    "axios": "^1.13.2",
+    "bullmq-mini-n8n-package": "^1.0.7",
+    "core-package-mini-n8n": "^1.1.6",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
+    "email-node-mini-n8n": "^2.0.2",
     "express": "^5.1.0",
-    "mongoose": "^8.14.3",
-    "nodemailer": "^7.0.3"
+    "firecrawl-node-mini-n8n": "^2.0.2",
+    "knex": "^3.1.0",
+    "mongoose": "^8.20.1",
+    "openai-message-model-node-mini-n8n": "^2.0.2",
+    "parallel-http-request-node-mini-n8n": "^1.0.1",
+    "pg": "^8.16.3",
+    "postgres-node-mini-n8n": "^2.0.2",
+    "queue-bullmq-node-mini-n8n": "^2.0.1",
+    "redis-node-mini-n8n": "^2.0.2",
+    "serpapi-node-mini-n8n": "^2.0.2",
+    "telegram-node-mini-n8n": "^1.0.1",
+    "todoits-node-mini-n8n": "^1.0.3",
+    "trello-node-mini-n8n": "^1.0.0",
+    "turso-db-node-mini-n8n": "^2.0.1",
+    "uninstall": "^0.0.0",
+    "update": "^0.7.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }

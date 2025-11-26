@@ -1,16 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { Webhook, Globe, GitBranch, Code2, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react"
+import { Webhook, Globe, GitBranch, Code2, ChevronLeft, ChevronRight, PlusCircle, Repeat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface FlowSidebarProps {
-  onAddNode: (type: string) => void
+  onAddNode: (type: string) => void,
+  customNodes: any[]
 }
 
-export function FlowSidebar({ onAddNode }: FlowSidebarProps) {
+export function FlowSidebar({ onAddNode, customNodes }: FlowSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
 
   const nodeTypes = [
@@ -50,6 +51,16 @@ export function FlowSidebar({ onAddNode }: FlowSidebarProps) {
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",
     },
+    {
+      type: "loop",
+      label: "Loop",
+      icon: Repeat,
+      description: "Execute actions multiple times over a list",
+      color: "text-blue-500",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+    },
+    ...customNodes
   ]
 
   return (

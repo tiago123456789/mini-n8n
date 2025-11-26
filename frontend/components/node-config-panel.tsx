@@ -13,11 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import NativeNodeType from "@/types/native-node-type.type";
 
-export default function NodeConfigPanel({ node, onChange, onClose }) {
+interface NodeConfigPanelProps {
+  node: { [key: string]: any };
+  onChange: (id: string, data: { [key: string]: any }) => void;
+  onClose: () => void;
+}
+
+export default function NodeConfigPanel({ node, onChange, onClose }: NodeConfigPanelProps) {
   const [config, setConfig] = useState({ ...node.data });
   const [headers, setHeaders] = useState<Array<{ [key: string]: any }>>([{}]);
   const [body, setBody] = useState<Array<{ [key: string]: any }>>([{}]);
+
 
   const [condition, setCondition] = useState(
     node.data.condition || {
@@ -26,6 +34,14 @@ export default function NodeConfigPanel({ node, onChange, onClose }) {
       right: "",
     }
   );
+
+  const mapNativeNode: { [key: string]: boolean } = {
+    [NativeNodeType.webhook]: true,
+    [NativeNodeType.api]: true,
+    [NativeNodeType.condition]: true,
+    [NativeNodeType.code]: true,
+    [NativeNodeType.loop]: true
+  }
 
   const addBody = () => {
     const registers = [...body];
@@ -301,39 +317,13 @@ export default function NodeConfigPanel({ node, onChange, onClose }) {
     <>
       <div className="space-y-2">
         <Label htmlFor="code">JavaScript Code</Label>
-        <textarea
+        <Textarea
           onChange={(e) => handleChange("code", e.target.value)}
           rows={15}
           cols={55}
         >
           {config.code}
-        </textarea>
-      </div>
-
-      <div className="text-xs text-muted-foreground mt-2">
-        <p>
-          The function will run in a Deno environment, so to import library you
-          can do something like:{" "}
-          <strong>import a from "npm:library_name"</strong>
-        </p>
-        <p>
-          You need to declara a function named <strong>node</strong>
-        </p>
-        <p>
-          The function needs to return a object, even you don't need to return
-          something you need to return empty object.
-        </p>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="code">Params(Json format)</Label>
-        <textarea
-          rows={5}
-          cols={55}
-          value={config.params}
-          onChange={(e) => handleChange("params", e.target.value)}
-        >
-          {JSON.stringify(config.params)}
-        </textarea>
+        </Textarea>
       </div>
       <div className="space-y-2">
         <Button
@@ -349,6 +339,132 @@ export default function NodeConfigPanel({ node, onChange, onClose }) {
       </div>
     </>
   );
+
+  const renderLoopNode = () => {
+    return (
+      <>
+        <div key={config.name} className="space-y-2">
+          <Label htmlFor={config.name}>Source of data</Label>
+          <Input
+            id='source_of_data'
+            value={config.source}
+            onChange={(e: any) => handleChange("source", e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Button
+            onClick={() => {
+              setConfig(null);
+              onClose();
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      </>
+
+    )
+  }
+
+  const renderCustomNodeConfig = () => {
+    return (
+      <>
+        <div className="space-y-2">
+          {node.data.properties.map((property: any) => {
+            const requiredOrOptional = property.required ? "(Required)" : "(Optional)";
+            let hasConditionShow = property?.conditionShow?.length > 0;
+            if (hasConditionShow) {
+              const resultVerifications = property.conditionShow.filter((condition: any) => {
+                return config[condition.keyCheck] == condition.valueExpected;
+              });
+
+              if (resultVerifications.length != property.conditionShow.length) {
+                return null;
+              }
+            }
+
+            if (property.type == "select") {
+              return (
+                <div key={property.name} className="space-y-2">
+                  <Label htmlFor={property.name}>{property.label} {requiredOrOptional}</Label>
+                  <Select
+                    value={config[property.name] || node.data[property.name] || ""}
+                    onValueChange={(value) => handleChange(property.name, value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {property.options.map((option: any) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )
+            }
+
+            if (property.type == "textarea") {
+              return (
+                <div key={property.name} className="space-y-2">
+                  <Label htmlFor={property.name}>{property.label} {requiredOrOptional}</Label>
+                  <textarea
+                    rows={5}
+                    cols={55}
+                    value={config[property.name] || node.data[property.name] || ""}
+                    onChange={(e) => handleChange(property.name, e.target.value)}
+                  >
+                    {(config[property.name])}
+                  </textarea>
+                </div>
+              )
+            }
+
+            if (property.type == "text") {
+              return (
+                <div key={property.name} className="space-y-2">
+                  <Label htmlFor={property.name}>{property.label} {requiredOrOptional}</Label>
+                  <Input
+                    id={property.name}
+                    value={config[property.name] || node.data[property.name] || ""}
+                    onChange={(e) => handleChange(property.name, e.target.value)}
+                  />
+                </div>
+              )
+            }
+
+
+            if (property.type == "number") {
+              return (
+                <div key={property.name} className="space-y-2">
+                  <Label htmlFor={property.name}>{property.label} {requiredOrOptional}</Label>
+                  <Input
+                    type="number"
+                    id={property.name}
+                    value={config[property.name] || node.data[property.name] || ""}
+                    onChange={(e) => handleChange(property.name, e.target.value)}
+                  />
+                </div>
+              )
+            }
+
+          })}
+        </div>
+        <div className="space-y-2">
+          <Button
+            onClick={() => {
+              setConfig(null);
+              onClose();
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      </>
+    )
+  }
 
   return (
     <div className="w-150 border-l bg-background p-4">
@@ -384,10 +500,12 @@ export default function NodeConfigPanel({ node, onChange, onClose }) {
             placeholder="Enter a descriptive name for this step"
           />
         </div>
-        {node.type === "webhook" && renderWebhookConfig()}
-        {node.type === "api" && renderApiConfig()}
-        {node.type === "condition" && renderConditionConfig()}
-        {node.type === "code" && renderCodeConfig()}
+        {node.type === NativeNodeType.webhook && renderWebhookConfig()}
+        {node.type === NativeNodeType.api && renderApiConfig()}
+        {node.type === NativeNodeType.condition && renderConditionConfig()}
+        {node.type === NativeNodeType.code && renderCodeConfig()}
+        {node.type === NativeNodeType.loop && renderLoopNode()}
+        {(!mapNativeNode[node.type]) && renderCustomNodeConfig()}
       </div>
     </div>
   );
