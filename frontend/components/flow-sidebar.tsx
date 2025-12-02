@@ -114,7 +114,6 @@ export function FlowSidebar({ onAddNode, customNodes }: FlowSidebarProps) {
           return (
             <div key={groupName} className="mb-3">
 
-              {/* Cabeçalho do grupo */}
               {!collapsed && (
                 <button
                   onClick={() => toggleGroup(groupName)}
@@ -137,7 +136,7 @@ export function FlowSidebar({ onAddNode, customNodes }: FlowSidebarProps) {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
-                            onClick={() => onAddNode(nodeType)}
+                            onClick={() => onAddNode(nodeType.type)}
                             className={cn(
                               "w-full flex items-center gap-3 p-2 rounded-md transition-colors",
                               nodeType.bgColor,
