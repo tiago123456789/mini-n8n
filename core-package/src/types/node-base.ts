@@ -30,6 +30,7 @@ export interface NodeProperty {
 export interface NodeConfig {
     name: string,
     type: string,
+    group?: string,
     description: string,
     properties: Array<NodeProperty>
 }
