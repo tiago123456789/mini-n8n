@@ -3,3 +3,4 @@ frontend/.next/
 api-mini-n8n/node_modules
 api-mini-n8n/.env
 .pnpm-store
+code/.pnpm-store
