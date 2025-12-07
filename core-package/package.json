@@ -1,6 +1,6 @@
 {
   "name": "core-package-mini-n8n",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Code package to create custom nodes for mini-n8n",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +17,7 @@
   "packageManager": "pnpm@10.7.1",
   "devDependencies": {
     "ts-node": "^10.9.2",
-    "tsx": "^4.20.6",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
