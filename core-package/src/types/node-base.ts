@@ -25,12 +25,14 @@ export interface NodeProperty {
         keyCheck: string,
         valueExpected: string,
     }>,
+    ai_description?: string
 }
 
 export interface NodeConfig {
     name: string,
     type: string,
     description: string,
+    ai_description?: string
     properties: Array<NodeProperty>
 }
 
