@@ -18,6 +18,7 @@ import CustomNodeService from "./services/custom-node.service";
 import { NotFoundException } from "./exception/not-found.exception";
 import WorkflowService from "./services/workflow.service";
 import handleExceptionMiddleware from "./middleware/handle-exception.middleware";
+import WorkflowAssistantService from "./services/workflow-assistant.service";
 
 app.use(express.json());
 app.use(cors());
@@ -133,7 +134,7 @@ app.put("/workflows/:id", async (req, res, next) => {
       webhookId: req.body.webhookId,
     });
     return res.status(204).json({});
-  } catch(error) {
+  } catch (error) {
     return next(error)
   }
 })
@@ -151,7 +152,7 @@ app.use("/webhooks/:id", async (req, res, next) => {
 
     return res.status(200).json({});
 
-  } catch(error: any) {
+  } catch (error: any) {
     return next(error)
   }
 })
@@ -172,12 +173,12 @@ app.use("/workflows/:id/trigger", async (req, res, next) => {
       params: req?.params || {},
       headers: req?.headers || {},
     })
-  
+
     return res.sendStatus(200);
-  } catch(error) {
+  } catch (error) {
     return next(error)
   }
-  
+
 });
 
 app.get("/workflows/:id/executions", async (req, res) => {
@@ -215,7 +216,7 @@ app.get("/workflows/:id", async (req, res, next) => {
     return res.json({
       data: result,
     });
-  } catch(error) {
+  } catch (error) {
     return next(error)
   }
 });
@@ -224,6 +225,25 @@ app.delete("/workflows/:id", async (req, res) => {
   await workflowService.deleteOne(req.params.id);
   return res.sendStatus(204);
 });
+
+app.post("/workflows-assistant", async (req, res, next) => {
+  const body = req.body;
+
+  try {
+
+    if (!body.prompt || body.prompt.trim().length == 0) {
+      return res.status(400).json({ error: "User need to send a prompt" })
+    }
+
+    await loadCustomNodes()
+    const result = await new WorkflowAssistantService(customNodes)
+      .processUserMessage(body.currentNodes || [], body.prompt)
+
+    return res.json({ result })
+  } catch(error) {
+    return next(error)
+  }
+})
 
 app.use(handleExceptionMiddleware);
 

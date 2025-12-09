@@ -17,9 +17,13 @@
   "license": "ISC",
   "packageManager": "pnpm@10.7.1",
   "dependencies": {
+    "@langchain/community": "^1.0.7",
+    "@langchain/core": "^1.1.4",
+    "@langchain/google-genai": "^2.0.4",
+    "@langchain/openai": "^1.1.3",
     "axios": "^1.13.2",
     "bullmq-mini-n8n-package": "^1.0.7",
-    "core-package-mini-n8n": "^1.1.6",
+    "core-package-mini-n8n": "^1.3.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "email-node-mini-n8n": "^2.0.2",
@@ -28,6 +32,7 @@
     "get-language-project": "^1.1.0",
     "github-node-mini-n8n": "^1.1.0",
     "knex": "^3.1.0",
+    "langchain": "^1.1.5",
     "mongoose": "^8.20.1",
     "openai-message-model-node-mini-n8n": "^2.0.2",
     "parallel-http-request-node-mini-n8n": "^1.0.1",
@@ -41,7 +46,8 @@
     "trello-node-mini-n8n": "^1.0.0",
     "turso-db-node-mini-n8n": "^2.0.1",
     "uninstall": "^0.0.0",
-    "update": "^0.7.4"
+    "update": "^0.7.4",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -49,7 +55,6 @@
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }

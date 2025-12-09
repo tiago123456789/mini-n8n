@@ -12,7 +12,36 @@ export default class HttpRequestNode extends NodeBase {
       name: "Http Request",
       type: "api",
       description: "Http Request node",
-      properties: [],
+      properties: [
+        {
+          label: "Method",
+          name: "method",
+          type: "string",
+          required: false,
+          default: "GET",
+        },
+        {
+          label: "Endpoint",
+          name: "endpoint",
+          type: "string",
+          required: false,
+          default: "",
+        },
+        {
+          label: "Body",
+          name: "body",
+          type: "array",
+          required: false,
+          default: [{ "key": "value" }],
+        },
+        {
+          label: "Headers",
+          name: "headers",
+          type: "array",
+          required: false,
+          default: [{ "key": "value" }],
+        },
+      ],
     }
   }
 
@@ -31,22 +60,41 @@ export default class HttpRequestNode extends NodeBase {
     const requestBody: { [key: string]: any } = {};
     for (let index = 0; index < setting.body.length; index += 1) {
       const item = setting.body[index];
-      if (item.type === "expression") {
-        requestBody[item.key] = this.parseExpression(item.value);
+      if (!item.value) {
         continue;
       }
-      requestBody[item.key] = item.value;
+
+      let value = this.parseExpression(item.value);
+      try {
+        requestBody[item.key] = JSON.parse(value)
+      } catch (error) {
+        requestBody[item.key] = value;
+      }
     }
 
     const requestHeaders: { [key: string]: any } = {};
     for (let index = 0; index < setting.headers.length; index += 1) {
       const item = setting.headers[index];
-      if (item.type === "expression") {
-        requestHeaders[item.key] = this.parseExpression(item.value);
+
+      if (!item.value) {
         continue;
       }
-      requestHeaders[item.key] = item.value;
+
+      let value = this.parseExpression(item.value);
+      try {
+        requestHeaders[item.key] = JSON.parse(value)
+      } catch (error) {
+        requestHeaders[item.key] = value;
+      }
     }
+
+    if (setting.method.toUpperCase() == "POST") {
+      const response = await axios.post(this.parseExpression(setting.url), requestBody, {
+        headers: requestHeaders
+      });
+      return response?.data || {};
+    }
+
 
     if (setting.method.toUpperCase() == "PUT") {
       const response = await axios.put(this.parseExpression(setting.url), requestBody, {
@@ -55,9 +103,5 @@ export default class HttpRequestNode extends NodeBase {
       return response?.data || {};
     }
 
-    const response = await axios.post(this.parseExpression(setting.url), requestBody, {
-      headers: requestHeaders
-    });
-    return response?.data || {};
   }
 }

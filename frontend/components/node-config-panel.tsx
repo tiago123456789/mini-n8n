@@ -13,15 +13,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import NativeNodeType from "@/types/native-node-type.type";
 
 interface NodeConfigPanelProps {
   node: { [key: string]: any };
   onChange: (id: string, data: { [key: string]: any }) => void;
   onClose: () => void;
+  isOpen?: boolean;
 }
 
-export default function NodeConfigPanel({ node, onChange, onClose }: NodeConfigPanelProps) {
+export default function NodeConfigPanel({ node, onChange, onClose, isOpen = true }: NodeConfigPanelProps) {
   const [config, setConfig] = useState({ ...node.data });
   const [headers, setHeaders] = useState<Array<{ [key: string]: any }>>([{}]);
   const [body, setBody] = useState<Array<{ [key: string]: any }>>([{}]);
@@ -87,7 +94,7 @@ export default function NodeConfigPanel({ node, onChange, onClose }: NodeConfigP
       setBody(node.data.body);
   }, [node]);
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: string, value: any) => {
     const newConfig = {
       ...config,
       headers: [...headers],
@@ -369,7 +376,7 @@ export default function NodeConfigPanel({ node, onChange, onClose }: NodeConfigP
   const renderCustomNodeConfig = () => {
     return (
       <>
-        <div className="space-y-2">
+        <div className="w-full space-y-2">
           {node.data.properties.map((property: any) => {
             const requiredOrOptional = property.required ? "(Required)" : "(Optional)";
             let hasConditionShow = property?.conditionShow?.length > 0;
@@ -467,46 +474,45 @@ export default function NodeConfigPanel({ node, onChange, onClose }: NodeConfigP
   }
 
   return (
-    <div className="w-150 border-l bg-background p-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">
-          Configure {node.type.charAt(0).toUpperCase() + node.type.slice(1)}
-        </h3>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      <div className="mt-4 space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="label">Node Type</Label>
-          <Input
-            id="label"
-            value={config.label || ""}
-            disabled={true}
-            onChange={(e) => handleChange("label", e.target.value)}
-          />
+    <Dialog  open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-scroll ">
+        <DialogHeader>
+          <DialogTitle>
+            Configure {node.type.charAt(0).toUpperCase() + node.type.slice(1)}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="w-full mt-4 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="label">Node Type</Label>
+            <Input
+              id="label"
+              value={config.label || ""}
+              disabled={true}
+              onChange={(e) => handleChange("label", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Step Name</Label>
+            <Input
+              id="name"
+              value={config.name || ""}
+              onChange={(e) =>
+                handleChange(
+                  "name",
+                  e.target.value.replace(/ /g, "_").toLowerCase()
+                )
+              }
+              placeholder="Enter a descriptive name for this step"
+            />
+          </div>
+          {node.type === NativeNodeType.webhook && renderWebhookConfig()}
+          {node.type === NativeNodeType.api && renderApiConfig()}
+          {node.type === NativeNodeType.condition && renderConditionConfig()}
+          {node.type === NativeNodeType.code && renderCodeConfig()}
+          {node.type === NativeNodeType.loop && renderLoopNode()}
+          {(!mapNativeNode[node.type]) && renderCustomNodeConfig()}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="name">Step Name</Label>
-          <Input
-            id="name"
-            value={config.name || ""}
-            onChange={(e) =>
-              handleChange(
-                "name",
-                e.target.value.replace(/ /g, "_").toLowerCase()
-              )
-            }
-            placeholder="Enter a descriptive name for this step"
-          />
-        </div>
-        {node.type === NativeNodeType.webhook && renderWebhookConfig()}
-        {node.type === NativeNodeType.api && renderApiConfig()}
-        {node.type === NativeNodeType.condition && renderConditionConfig()}
-        {node.type === NativeNodeType.code && renderCodeConfig()}
-        {node.type === NativeNodeType.loop && renderLoopNode()}
-        {(!mapNativeNode[node.type]) && renderCustomNodeConfig()}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

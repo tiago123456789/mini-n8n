@@ -23,20 +23,27 @@ import { ConditionNode } from "./nodes/condition-node";
 import { LoopNode } from "./nodes/loop-node";
 import NodeConfigPanel from "./node-config-panel";
 import { Button } from "@/components/ui/button";
-import { GitBranch, PlusCircle, Save, Target, Shield, Play } from "lucide-react";
+import {
+  GitBranch,
+  PlusCircle,
+  Save,
+  Target,
+  Shield,
+  Play,
+} from "lucide-react";
 import { z } from "zod";
 import { CodeNode } from "./nodes/code-node";
-import axios, { AxiosError } from "axios";
 import { SensitiveDataModal } from "./sensitive-data-modal";
 import { LogsModal } from "./logs-modal";
 import { FlowSidebar } from "./flow-sidebar";
 import { CustomNode } from "./nodes/custom-node";
 import ExecutionsDrawer from "./executions-drawer";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import useWorkflow from "@/hooks/useWorkflow";
 import SensitiveData from "@/types/sensitive-data";
 import NativeNodeType from "@/types/native-node-type.type";
-
+import { ChatComponent } from "./chat-component";
+import Message from "@/types/message";
 
 const validationDataNodeTypes: {
   [key: string]: z.ZodObject<{ [key: string]: any }>;
@@ -61,8 +68,6 @@ const validationDataNodeTypes: {
   }),
 };
 
-
-
 const initialNodes = [
   {
     id: "1",
@@ -75,14 +80,12 @@ const initialNodes = [
   },
 ];
 
-const initialEdges: Array<{ [key: string]: any }> = [
-];
-
+const initialEdges: Array<{ [key: string]: any }> = [];
 
 interface FlowBuilderProps {
-  flowName?: string
-  onFlowNameChange?: (name: string) => void
-  workflowToEdit: any,
+  flowName?: string;
+  onFlowNameChange?: (name: string) => void;
+  workflowToEdit: any;
 }
 
 export default function FlowBuilder({
@@ -92,7 +95,9 @@ export default function FlowBuilder({
   const router = useRouter();
   const reactFlowWrapper = useRef(null);
   const [workflowId, setWorkflowId] = useState(null);
-  const [defaultDataByNodeTypes, setDefaultDataByNodeTypes] = useState<{ [key: string]: any }>({
+  const [defaultDataByNodeTypes, setDefaultDataByNodeTypes] = useState<{
+    [key: string]: any;
+  }>({
     api: {
       label: "API",
       name: "",
@@ -126,7 +131,7 @@ export default function FlowBuilder({
       name: "",
       source: "",
     },
-  })
+  });
   const [nodeTypes, setNodeTypes] = useState<NodeTypes>({
     webhook: WebhookNode,
     api: ApiNode,
@@ -139,16 +144,138 @@ export default function FlowBuilder({
     // @ts-ignore
     useEdgesState<Array<{ [key: string]: any }>>(initialEdges);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [customNodes, setCustomNodes] = useState<any[]>([])
-  const [sensitiveData, setSensitiveData] = useState<SensitiveData[]>([])
-  const [isSensitiveDataModalOpen, setIsSensitiveDataModalOpen] = useState(false)
+  const [customNodes, setCustomNodes] = useState<any[]>([]);
+  const [sensitiveData, setSensitiveData] = useState<SensitiveData[]>([]);
+  const [isSensitiveDataModalOpen, setIsSensitiveDataModalOpen] =
+    useState(false);
 
   const {
-    updateWorkflow, runWorkflow,
-    logs, isLogsModalOpen,
-    setIsLogsModalOpen, isRunningWorkflow,
-    getCustomNodes, createWorkflow
+    updateWorkflow,
+    runWorkflow,
+    logs,
+    isLogsModalOpen,
+    setIsLogsModalOpen,
+    isRunningWorkflow,
+    getCustomNodes,
+    createWorkflow,
+    handleUserChatMessage,
   } = useWorkflow();
+
+  const [chatMessages, setChatMessages] = useState<Message[]>([
+    {
+      id: "1",
+      content:
+        "Hello! I'm your workflow assistant. Describe what workflow you'd like to create, and I'll help you build it step by step.",
+      sender: "assistant",
+      timestamp: new Date(),
+    },
+  ]);
+
+  const addNewNode = (data: { [key: string]: any }) => {
+    const customData: { [key: string]: any } = {};
+    const nodeToAdd = data;
+    if (nodeToAdd?.properties?.length > 0) {
+      nodeToAdd.properties.forEach((item: any) => {
+        customData[item.name] = item.default || "";
+      });
+    }
+
+    if (nodeToAdd.type == "condition") {
+      customData.condition = {
+        ...customData,
+      };
+    }
+
+    addNode(nodeToAdd.type, customData);
+  };
+
+  const editNode = (data: { [key: string]: any }) => {
+    let items: Array<any> = [...nodes];
+    items = items.map((item) => {
+      if (item.id == data?.id) {
+        return data;
+      }
+      return item;
+    });
+
+    setNodes([...items]);
+  };
+
+  const handleSendMessage = async (content: string) => {
+    try {
+      const response = await handleUserChatMessage(content, nodes);
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content,
+          sender: "user",
+          timestamp: new Date(),
+        },
+      ]);
+
+      if (typeof response.data.result == "string") {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            content: `${response.data.result}`,
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
+
+        return;
+      }
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: `Node generated is: ${JSON.stringify(
+            response.data.result,
+            null,
+            2
+          )}`,
+          sender: "assistant",
+          timestamp: new Date(),
+        },
+      ]);
+
+      const hasEdit =
+        nodes.find((item) => item?.id == response.data.result?.id) != null;
+      if (!hasEdit) {
+        addNewNode(response.data.result);
+      } else {
+        editNode(response.data.result);
+      }
+    } catch (error: any) {
+      if (error?.response?.data?.error) {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            content,
+            sender: "user",
+            timestamp: new Date(),
+          },
+        ]);
+
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            content: `I'm sorry, but I couldn't generate the node. Error: ${error.response.data.error}`,
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
+      }
+
+      console.log(error);
+    }
+  };
 
   const onConnect = (params: Connection | Edge) => {
     const mapNodesById: { [key: string]: any } = {};
@@ -185,7 +312,7 @@ export default function FlowBuilder({
     setSelectedNode({ ...node });
   };
 
-  const onNodeConfigChange = (nodeId: string, newData: any) => {
+  const onNodeConfigChange = (nodeId: string, newData: any = {}) => {
     setNodes((nds) => [
       ...nds.map((node) => {
         if (node.id === nodeId) {
@@ -202,13 +329,14 @@ export default function FlowBuilder({
     ]);
   };
 
-  const addNode = (type: string) => {
+  const addNode = (type: string, customData: { [key: string]: any }) => {
     const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
     const data = {
       ...defaultDataByNodeTypes[type],
       label: type.charAt(0).toUpperCase() + type.slice(1),
       name: `trigger_${typeLabel}_${nodes.length + 1}`.toLowerCase(),
-    }
+      ...customData,
+    };
 
     const newNode = {
       id: `${nodes.length + 1}`,
@@ -227,34 +355,34 @@ export default function FlowBuilder({
     setSelectedNode(null);
   };
 
-  const duplicateNode =
-    (nodeId: string) => {
-      const node = nodes.find((node) => node.id === nodeId);
-      if (!node) {
-        return;
-      }
-
-      // @ts-ignore
-      const typeLabel = node.type.charAt(0).toUpperCase() + node.type.slice(1);
-      const newNode = {
-        id: `${nodes.length + 2}`,
-        type: node.type,
-        position: {
-          x: 250,
-          y: nodes.length > 0 ? nodes[nodes.length - 1].position.y + 150 : 100,
-        },
-        data: { ...node.data },
-      };
-
-      // @ts-ignore
-      newNode.data.label = node.type.charAt(0).toUpperCase() + node.type.slice(1);
-      newNode.data.name = `trigger_${typeLabel}_${nodes.length + 1}`.toLowerCase();
-      setNodes((nds) => [...nds, { ...newNode }]);
+  const duplicateNode = (nodeId: string) => {
+    const node = nodes.find((node) => node.id === nodeId);
+    if (!node) {
+      return;
     }
+
+    // @ts-ignore
+    const typeLabel = node.type.charAt(0).toUpperCase() + node.type.slice(1);
+    const newNode = {
+      id: `${nodes.length + 2}`,
+      type: node.type,
+      position: {
+        x: 250,
+        y: nodes.length > 0 ? nodes[nodes.length - 1].position.y + 150 : 100,
+      },
+      data: { ...node.data },
+    };
+
+    // @ts-ignore
+    newNode.data.label = node.type.charAt(0).toUpperCase() + node.type.slice(1);
+    newNode.data.name = `trigger_${typeLabel}_${
+      nodes.length + 1
+    }`.toLowerCase();
+    setNodes((nds) => [...nds, { ...newNode }]);
+  };
 
   const deleteNode = useCallback(
     (nodeId: string) => {
-
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
       setEdges((eds) =>
         eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
@@ -399,9 +527,8 @@ export default function FlowBuilder({
     delete itemData.isCustomNode;
     delete itemData.name;
 
-
     const typeLabel = item.type.charAt(0).toUpperCase() + item.type.slice(1);
-    item.data.name = `trigger_${typeLabel}_${index + 1}`.toLowerCase()
+    item.data.name = `trigger_${typeLabel}_${index + 1}`.toLowerCase();
 
     return {
       type: item.type,
@@ -409,7 +536,7 @@ export default function FlowBuilder({
       setting: itemData,
       input: {},
       output: {},
-    }
+    };
   };
 
   const saveWorkflow = async (isTest: boolean = false) => {
@@ -423,29 +550,31 @@ export default function FlowBuilder({
       triggerEvent,
       nodes: [],
     };
-   
+
     const mapNodesById: { [key: string]: any } = {};
-    const nodesToProcess = [...nodes]
+    const nodesToProcess = [...nodes];
     for (let index = 0; index < nodesToProcess.length; index += 1) {
       const item = nodesToProcess[index];
       // @ts-ignore
 
       const isCustomNode = !validationDataNodeTypes[item.type];
       if (isCustomNode) {
-        const schema = {}
+        const schema = {};
 
         // @ts-ignore
-        item.data.properties.filter(property => property.required).forEach((property: { [key: string]: any }) => {
-          if (property.name) {
-            if (property.required) {
-              // @ts-ignore
-              schema[property.name] = z.string();
-            } else {
-              // @ts-ignore
-              schema[property.name] = z.string().optional();
+        item.data.properties
+          .filter((property) => property.required)
+          .forEach((property: { [key: string]: any }) => {
+            if (property.name) {
+              if (property.required) {
+                // @ts-ignore
+                schema[property.name] = z.string();
+              } else {
+                // @ts-ignore
+                schema[property.name] = z.string().optional();
+              }
             }
-          }
-        });
+          });
 
         const schemaValidation = z.object(schema);
         const result = schemaValidation.safeParse(item.data);
@@ -480,12 +609,7 @@ export default function FlowBuilder({
       }
 
       workflow.nodes.push(
-        parseToSave(
-          item,
-          mapNodesById,
-          ignoreNodeById,
-          index
-        )
+        parseToSave(item, mapNodesById, ignoreNodeById, index)
       );
     }
 
@@ -500,7 +624,7 @@ export default function FlowBuilder({
           nodes: [...nodes],
           edges: [...edges],
         },
-        ...workflow
+        ...workflow,
       });
       return;
     }
@@ -515,7 +639,7 @@ export default function FlowBuilder({
           nodes: [...nodes],
           edges: [...edges],
         },
-        ...workflow
+        ...workflow,
       });
     } else {
       const workflowCreated = await createWorkflow({
@@ -533,7 +657,6 @@ export default function FlowBuilder({
         router.push(`/workflows/${workflowCreated.id}/edit`);
       }, 1000);
     }
-
   };
 
   const loadCustomNodes = async () => {
@@ -543,15 +666,15 @@ export default function FlowBuilder({
     const defaultDataByNodeTypesToCustomNodes: { [key: string]: any } = {};
     customNodes.forEach((node: any) => {
       itemsTypes[node.name] = CustomNode;
-      const defaultData: { [key: string]: any } = {}
+      const defaultData: { [key: string]: any } = {};
       node.properties.forEach((prop: any) => {
-        defaultData[prop.name] = prop.default
+        defaultData[prop.name] = prop.default;
       });
 
       defaultDataByNodeTypesToCustomNodes[node.name] = {
         ...defaultData,
         properties: node.properties,
-        isCustomNode: node.isCustomNode
+        isCustomNode: node.isCustomNode,
       };
 
       items.push({
@@ -563,26 +686,31 @@ export default function FlowBuilder({
         bgColor: "bg-blue-50",
         borderColor: "border-blue-200",
       });
-    })
+    });
     setCustomNodes(items);
     setNodeTypes({ ...nodeTypes, ...itemsTypes });
     setDefaultDataByNodeTypes({
       ...defaultDataByNodeTypes,
-      ...defaultDataByNodeTypesToCustomNodes
+      ...defaultDataByNodeTypesToCustomNodes,
     });
-  }
+  };
 
   useEffect(() => {
     if (workflowToEdit) {
       loadCustomNodes().then(() => {
-        workflowToEdit.originalWorkflow.nodes = workflowToEdit.originalWorkflow.nodes.map((node: any, index: number) => {
-          const type = node.type
-          const nodeDefaultData = defaultDataByNodeTypes[type]
-          node.data.isCustomNode = nodeDefaultData.isCustomNode || false
-          const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-          node.data.name = `trigger_${typeLabel}_${index + 1}`.toLowerCase()
-          return node;
-        })
+        workflowToEdit.originalWorkflow.nodes =
+          workflowToEdit.originalWorkflow.nodes.map(
+            (node: any, index: number) => {
+              const type = node.type;
+              const nodeDefaultData = defaultDataByNodeTypes[type];
+              node.data.isCustomNode = nodeDefaultData.isCustomNode || false;
+              const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+              node.data.name = `trigger_${typeLabel}_${
+                index + 1
+              }`.toLowerCase();
+              return node;
+            }
+          );
         setNodes(workflowToEdit.originalWorkflow.nodes);
         setEdges(workflowToEdit.originalWorkflow.edges);
         setWorkflowId(workflowToEdit.id);
@@ -592,22 +720,19 @@ export default function FlowBuilder({
   }, [workflowToEdit]);
 
   useEffect(() => {
-    document.title = `${flowName} - Flow Builder`
-
-  }, [flowName])
+    document.title = `${flowName} - Flow Builder`;
+  }, [flowName]);
 
   useEffect(() => {
     if (!workflowToEdit) {
       loadCustomNodes();
     }
-  }, [])
-
+  }, []);
 
   return (
-    <div className="flex h-full">
-      <FlowSidebar onAddNode={addNode} customNodes={customNodes} />
+    <div className="relative h-full">
       <ReactFlowProvider>
-        <div ref={reactFlowWrapper} className="flex-1 h-[calc(100vh-4rem)]">
+        <div ref={reactFlowWrapper} className="w-full h-[calc(100vh-4rem)]">
           <ReactFlow
             nodes={nodes.map((node) => ({
               ...node,
@@ -624,16 +749,25 @@ export default function FlowBuilder({
             onNodeClick={onNodeClick}
             nodeTypes={nodeTypes}
             fitView
+            className="w-full h-full"
           >
             <Controls />
             <Background />
             <Panel position="top-right" className="flex gap-2">
               <ExecutionsDrawer workflowId={workflowToEdit?.id} />
-              <Button size="sm" variant="outline" onClick={() => saveWorkflow(true)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => saveWorkflow(true)}
+              >
                 <Play className="mr-2 h-4 w-4" />
                 Run Workflow
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setIsSensitiveDataModalOpen(true)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsSensitiveDataModalOpen(true)}
+              >
                 <Shield className="mr-2 h-4 w-4" />
                 Sensitive Data
               </Button>
@@ -642,16 +776,32 @@ export default function FlowBuilder({
                 Save Workflow
               </Button>
             </Panel>
+            {/* Node Sidebar */}
+            <Panel position="top-left" className="mt-4">
+              <FlowSidebar onAddNode={addNode} customNodes={customNodes} />
+            </Panel>
           </ReactFlow>
+
+          {/* Floating Chat Widget */}
+          <ChatComponent
+            messages={chatMessages}
+            onSendMessage={handleSendMessage}
+            placeholder="Need help with workflow creation?"
+            maxHeight="300px"
+            className="w-90 h-[400px]"
+            title="Workflow Assistant"
+            isFloating={true}
+            defaultPosition={{ x: 350, y: 100 }}
+            defaultMinimized={true}
+          />
         </div>
         {selectedNode && (
-          <>
-            <NodeConfigPanel
-              node={selectedNode}
-              onChange={onNodeConfigChange}
-              onClose={closeConfigPanel}
-            />
-          </>
+          <NodeConfigPanel
+            node={selectedNode}
+            onChange={onNodeConfigChange}
+            onClose={closeConfigPanel}
+            isOpen={!!selectedNode}
+          />
         )}
         <SensitiveDataModal
           isOpen={isSensitiveDataModalOpen}

@@ -1,20 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Webhook, Globe, GitBranch, Code2, ChevronLeft, ChevronRight, PlusCircle, Repeat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface FlowSidebarProps {
-  onAddNode: (type: string) => void,
+  onAddNode: (type: string, customData: { [key: string]: any }) => void,
   customNodes: any[]
 }
 
 export function FlowSidebar({ onAddNode, customNodes }: FlowSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
-
-  const nodeTypes = [
+  const [nodeTypes, setNodeTypes] = useState([
     {
       type: "webhook",
       label: "Webhook",
@@ -60,8 +59,21 @@ export function FlowSidebar({ onAddNode, customNodes }: FlowSidebarProps) {
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
     },
-    ...customNodes
-  ]
+  ])
+
+  useEffect(() => {
+    const alreadyAddedBefore: { [key: string]: boolean } = {}
+    setNodeTypes((prevNodeTypes) => [
+      ...prevNodeTypes,
+      ...customNodes.filter((node) => {
+        if (alreadyAddedBefore[node.type]) {
+          return false
+        }
+        alreadyAddedBefore[node.type] = true
+        return true
+      })
+    ])
+  }, [customNodes])
 
   return (
     <div
@@ -85,38 +97,43 @@ export function FlowSidebar({ onAddNode, customNodes }: FlowSidebarProps) {
 
       <div className="w-4/4 h-full max-h-screen overflow-y-auto flex flex-col flex-grow">
         <div className={cn("space-y-2", collapsed && "space-y-3")}>
-          {nodeTypes.map((nodeType) => (
-            <TooltipProvider key={nodeType.type} delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => onAddNode(nodeType.type)}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-2 rounded-md transition-colors",
-                      nodeType.bgColor,
-                      nodeType.borderColor,
-                      "border hover:bg-muted",
-                      collapsed ? "justify-center" : "justify-start",
-                    )}
-                  >
-                    <nodeType.icon className={cn("h-5 w-5", nodeType.color)} />
-                    {!collapsed && (
-                      <div className="text-left">
-                        <div className="font-medium">{nodeType.label}</div>
-                        <div className="text-xs text-muted-foreground">{nodeType.description}</div>
-                      </div>
-                    )}
-                  </button>
-                </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="right" className="flex flex-col gap-1">
-                    <div className="font-medium">{nodeType.label}</div>
-                    <div className="text-xs">{nodeType.description}</div>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          ))}
+          {nodeTypes.map((nodeType) => {
+            return (
+              <TooltipProvider
+                key={`${nodeType.type}_${Date.now()}`}
+                delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => onAddNode(nodeType.type, {})}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-2 rounded-md transition-colors",
+                        nodeType.bgColor,
+                        nodeType.borderColor,
+                        "border hover:bg-muted",
+                        collapsed ? "justify-center" : "justify-start",
+                      )}
+                    >
+                      <nodeType.icon className={cn("h-5 w-5", nodeType.color)} />
+                      {!collapsed && (
+                        <div className="text-left">
+                          <div className="font-medium">{nodeType.label}</div>
+                          <div className="text-xs text-muted-foreground">{nodeType.description}</div>
+                        </div>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  {collapsed && (
+                    <TooltipContent side="right" className="flex flex-col gap-1">
+                      <div className="font-medium">{nodeType.label}</div>
+                      <div className="text-xs">{nodeType.description}</div>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            )
+          }
+          )}
         </div>
       </div>
 
