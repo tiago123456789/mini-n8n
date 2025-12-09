@@ -13,7 +13,16 @@ export default class LoopNode extends NodeBase {
             name: "Loop",
             type: "loop",
             description: "Loop node",
-            properties: [],
+            ai_description: "Node focus on execute repetitive actions",
+            properties: [
+                {
+                    label: "Loop",
+                    type: "text",
+                    name: "source",
+                    default: "[1,2,3]",
+                    required: true,
+                },
+            ],
         }
     }
 
@@ -38,13 +47,13 @@ export default class LoopNode extends NodeBase {
             const item = source[index];
             steps[node.name].currentItem = item
             this.state.steps = {
-                ...this.state.steps, 
+                ...this.state.steps,
                 ...steps,
             }
 
             await this.engine.process(workflowToRun)
             this.state.steps = {
-                ...this.state.steps, 
+                ...this.state.steps,
                 ...steps,
                 ...this.engine.getState().steps
             }
@@ -52,7 +61,7 @@ export default class LoopNode extends NodeBase {
 
         }
 
-        this.state.steps = {...this.state.steps, ...steps}
+        this.state.steps = { ...this.state.steps, ...steps }
         return {};
     }
 };

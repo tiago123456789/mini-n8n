@@ -12,7 +12,16 @@ class CodeNode extends NodeBase {
       name: "Code",
       type: "code",
       description: "Code node",
-      properties: [],
+      properties: [
+        {
+          label: "Code",
+          name: "code",
+          type: "string",
+          required: true,
+          default: "function node() { console.log('Hello World') }",
+          description: "Any code need to be inside the function node(). For example: code 'function node() { // code logic here }' "
+        }
+      ],
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "core-package-mini-n8n",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Code package to create custom nodes for mini-n8n",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -10,7 +10,40 @@ export default class ConditionNode extends NodeBase {
       name: "Condition",
       type: "condition",
       description: "Condition node",
-      properties: [],
+      ai_description: "Use this node when you can compare values or check something",
+      properties: [
+        {
+          label: "Condition on left side",
+          name: "left",
+          type: "text",
+          required: false,
+          default: ""
+        },
+        {
+          label: "Condition on right side",
+          name: "right",
+          type: "text",
+          required: false,
+          default: ""
+        },
+        {
+          label: "Condition to compare the left and right data",
+          name: "operator",
+          ai_description: `
+            Valid operators: 
+              "==" => means compare if left and right is equal
+              "===" => means compare if left and rigth is equal and has same data type
+              "!=" => means compare if left and rigth is not equal or if left and right are different
+              ">" => means compare if left is greater than rigth
+              "<" => means compare if left is less than rigth
+              ">=" => means compare if left is greater than or equal to rigth
+              "<=" => means compare if left is less than or equal to rigth
+          `,
+          default: "==",
+          required: false,
+          type: "text"
+        },
+      ],
     }
   }
 
