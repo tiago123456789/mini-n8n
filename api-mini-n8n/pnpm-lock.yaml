@@ -658,8 +658,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@mendable/firecrawl-js@4.6.2':
-    resolution: {integrity: sha512-aSqZlL5sybe6VwIqCx78qWEWUmpjHwMcOBboGrOF5YULWCHBgUJbeuglUzeEzY/e+uExaR9wuxS+PWryVHtB+w==}
+  '@mendable/firecrawl-js@4.8.3':
+    resolution: {integrity: sha512-D4Un4hx0rymJhpoXuD45kpvKWFE7Q4UuNzZdzcdpj0ak6KQyxvnaV7tsGU4vXehonDv8EsVe3AjNx+G7v35xfQ==}
     engines: {node: '>=22.0.0'}
 
   '@mongodb-js/saslprep@1.3.2':
@@ -2765,8 +2765,8 @@ packages:
     resolution: {integrity: sha512-s+w+rBWnpTMwSFbaE0UXsRlg7hU4FjekKU4eyAih5T8nJuNZT1nNsskXpxmeqSK9UzkBl6UgRlnKc8hz8IEqOw==}
     hasBin: true
 
-  nodemailer@7.0.10:
-    resolution: {integrity: sha512-Us/Se1WtT0ylXgNFfyFSx4LElllVLJXQjWi2Xz17xWw7amDKO2MLtFnVp1WACy7GkVGs+oBlRopVNUzlrGSw1w==}
+  nodemailer@7.0.11:
+    resolution: {integrity: sha512-gnXhNRE0FNhD7wPSCGhdNh46Hs6nm+uTyg+Kq0cZukNQiYdnCsoQjodNP9BQVG9XrcK/v6/MgpAPBUFyzh9pvw==}
     engines: {node: '>=6.0.0'}
 
   nodemon@3.1.11:
@@ -4074,17 +4074,14 @@ snapshots:
   '@libsql/win32-x64-msvc@0.5.22':
     optional: true
 
-  '@mendable/firecrawl-js@4.6.2':
+  '@mendable/firecrawl-js@4.8.3':
     dependencies:
       axios: 1.13.2(debug@4.4.3)
       typescript-event-target: 1.1.1
-      ws: 8.18.3
       zod: 3.25.76
       zod-to-json-schema: 3.25.0(zod@3.25.76)
     transitivePeerDependencies:
-      - bufferutil
       - debug
-      - utf-8-validate
 
   '@mongodb-js/saslprep@1.3.2':
     dependencies:
@@ -5300,7 +5297,7 @@ snapshots:
   email-node-mini-n8n@2.0.2:
     dependencies:
       core-package-mini-n8n: 1.3.0
-      nodemailer: 7.0.10
+      nodemailer: 7.0.11
 
   empty-dir@0.2.1:
     dependencies:
@@ -5593,13 +5590,11 @@ snapshots:
 
   firecrawl-node-mini-n8n@2.0.2:
     dependencies:
-      '@mendable/firecrawl-js': 4.6.2
+      '@mendable/firecrawl-js': 4.8.3
       core-package-mini-n8n: 1.3.0
-      nodemailer: 7.0.10
+      nodemailer: 7.0.11
     transitivePeerDependencies:
-      - bufferutil
       - debug
-      - utf-8-validate
 
   first-chunk-stream@1.0.0: {}
 
@@ -6755,7 +6750,7 @@ snapshots:
       detect-libc: 2.1.2
     optional: true
 
-  nodemailer@7.0.10: {}
+  nodemailer@7.0.11: {}
 
   nodemon@3.1.11:
     dependencies:

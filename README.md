@@ -12,6 +12,7 @@ Link to video show a little bit about the project: https://www.youtube.com/watch
 - Execute workflows via Webhook
 - Test the workflow while you are creating it
 - Create custom nodes to execute your own logic when you need a customized solution
+- Workflow assistant to help to create/modify workflows everything based on native nodes and custom nodes you have.
 
 ## What did I learn or reviewed?
 
@@ -29,19 +30,22 @@ Link to video show a little bit about the project: https://www.youtube.com/watch
 - Api(HttpRequestNode) => make http requests
 - Code(CodeNode) => execute code in runtime
 - Condition(ConditionNode) => make conditions
-- Loop(LoopNode) => make loops when you need to repeat a nodes 
+- Loop(LoopNode) => make loops when you need to repeat a nodes
 
 ## Stack
 
 ### Backend
+
 - Node.js
 - Express.js
 - TypeScript
 - PostgreSQL
 - Docker
 - Docker Compose
+- Gemini + Langchain(Workflow assistant AI)
 
 ### Frontend
+
 - NextJs
 - TypeScript
 - React
@@ -51,9 +55,9 @@ Link to video show a little bit about the project: https://www.youtube.com/watch
 
 - Clone
 - Access directory **api-mini-n8n**
-- Create .env file based on .env.example    
-- Execute command **pnpm run migration:run** to run database migrations and create 
-the database tables
+- Create .env file based on .env.example
+- Execute command **pnpm run migration:run** to run database migrations and create
+  the database tables
 - Run docker-compose up --build to run containers: api-mini-n8n, code-executor and mongo
 - Access directory **frontend**
 - Execute command **pnpm install**
@@ -62,28 +66,27 @@ the database tables
 ## Folder structure
 
 - api-mini-n8n: backend
-     - src
-        - config: configurations
-        - exception: exception from application
-        - middlewares: middlewares
-        - migrations: database migrations
-        - models: models represent database tables
-        - repositories: repositories contains database queries
-        - services: containers the business logic
-        - workflow: contains the workflow engine to execute the workflow and native nodes.
-        - utils: contains code support other layers
+  - src
+    - config: configurations
+    - exception: exception from application
+    - middlewares: middlewares
+    - migrations: database migrations
+    - models: models represent database tables
+    - repositories: repositories contains database queries
+    - services: containers the business logic
+    - workflow: contains the workflow engine to execute the workflow and native nodes.
+    - utils: contains code support other layers
 - frontend: frontend
-     - app: pages of the application
-     - components: components of the application
-     - hooks: hooks of the application
-     - types: types of the application
-     - utils: utils of the application
+  - app: pages of the application
+  - components: components of the application
+  - hooks: hooks of the application
+  - types: types of the application
+  - utils: utils of the application
 - core-package: core package to create custom nodes
-     - src
-        - types: types to create custom nodes
-        - index.ts: main file
+  - src
+    - types: types to create custom nodes
+    - index.ts: main file
 - package-examples: examples of custom nodes
-
 
 ## How to create custom nodes
 
